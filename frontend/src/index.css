@@ -12,5 +12,13 @@ code {
     monospace;
 }
 
+/* Color pallete: */
+:root{
+  --premium: #1db954;
+  --primary: #121212;
+  --secondary: #212121;
+  --tertiary: #535353;
+}
+
 
 /* Navbar: */
