@@ -1,0 +1,102 @@
+.authentication-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: column;
+  width: 100%;
+  min-height: calc(100vh - 70px);
+  color: var(--textColor);
+}
+
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-direction: column;
+  /* background-color: var(--tertiary); */
+  border: 2px solid var(--premium);
+  border-radius: 15px;
+  height: 500px;
+  width: 400px;
+}
+
+.signup-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex-direction: column;
+  /* background-color: var(--tertiary); */
+  border: 2px solid var(--premium);
+  border-radius: 15px;
+  height: 550px;
+  width: 400px;
+}
+
+.buttons-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  margin: 40px 0 50px 0;
+}
+
+.buttons-container p {
+  background-color: transparent;
+  color: var(--premium);
+  margin: 0 20px;
+  border: 2px solid var(--premium);
+  padding: 10px 20px;
+  border-radius: 15px;
+  animation-duration: 0.4s;
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.buttons-container p:hover {
+  background-color: var(--premium);
+  color: white;
+}
+
+.login-container h2,
+.signup-container h2 {
+  font-size: 25px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.login-container label,
+.signup-container label {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.login-container input,
+.signup-container input {
+  font-size: 20px;
+  font-weight: 500;
+  display: block;
+  padding: 4px 10px;
+  margin-bottom: 20px;
+  border: 2px solid var(--premium);
+  border-radius: 5px;
+}
+
+.login-container button,
+.signup-container button {
+  background-color: transparent;
+  color: var(--premium);
+  margin: 0 20px;
+  border: 2px solid var(--premium);
+  padding: 10px 20px;
+  border-radius: 15px;
+  animation-duration: 0.4s;
+  font-weight: 600;
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+.login-container button:hover,
+.signup-container button:hover {
+    background-color: var(--premium);
+    color: white;
+  }

@@ -14,11 +14,25 @@ code {
 
 /* Color pallete: */
 :root{
-  --premium: #1db954;
+  /* --premium: #1db954;
   --primary: #121212;
   --secondary: #212121;
-  --tertiary: #535353;
+  --tertiary: #555555;
+  --textColor: white; */
+
+  --premium: purple;
+  --secondary: white;
+  --primary: #e7e7ff;
+  --tertiary: #EDEBFF;
+  --textColor: black;
 }
 
+*{
+  margin: 0;
+  padding: 0;
+}
 
-/* Navbar: */
+body{
+  background-color: var(--primary);
+  color: while;
+}
