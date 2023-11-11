@@ -1,24 +1,36 @@
-import { React, useState } from "react";
-import styles from "../styles/Authentication.module.css";
+import { React, useState } from 'react';
+import { useLogin } from "../hooks/useLogin";
+import styles from '../styles/Authentication.module.css';
 
 const Login = () => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    console.log("Logging in with:", { username, password });
+  const [error, setError] = useState(null);
+
+  const {login, isLoading } = useLogin(setError);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      setError("All fields are required.");
+      return;
+    }
+
+    await login(email, password);
   };
 
   return (
-    <div className={styles["login-container"]}>
+    <div className={styles['login-container']}>
       <h2>Login To Continue</h2>
       <div>
         <label>
-          Username:
+          Email:
           <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </label>
 
@@ -32,8 +44,11 @@ const Login = () => {
         </label>
       </div>
 
-      <button onClick={handleLogin}>Login</button>
+      <button onClick={handleLogin} disabled={isLoading}>Login</button>
+      
+      {error && <p>{error}</p>}
     </div>
   );
 };
+
 export default Login;

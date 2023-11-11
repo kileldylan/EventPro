@@ -2,8 +2,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-direction: row;
+    flex-direction: column;
     width: 100%;
     min-height: calc(100vh - 70px);
     color: var(--textColor);
+}
+
+.home-container button{
+    font-size: 30px;
 }

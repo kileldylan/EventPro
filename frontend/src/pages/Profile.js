@@ -1,12 +1,31 @@
-import React from "react";
+import React, { useState, useEffect } from 'react';
 import styles from "../styles/Profile.module.css";
 
+import { useAuthContext } from "../hooks/useAuthContext";
+
 const Profile = () => {
-  const user = {
-    name: "Abhishek Shinde",
-    username: "abhishinde",
-    email: "abhishinde889@gmail.com",
-  };
+  const { user } = useAuthContext();
+  const username = user.username;
+
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:4000/api/getUser/${username}`);
+        const data = await response.json();
+        setUserData(data);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, [username]);
+
+  if (!userData) {
+    return <p>Loading...</p>;
+  }
 
   const tickets = [
     {
@@ -30,9 +49,10 @@ const Profile = () => {
       <div className={styles["user-section"]}>
         <h1>User Details</h1>
         <div>
-          <p>Name: {user.name}</p>
-          <p>Username: {user.username}</p>
-          <p>Email: {user.email}</p>
+          <p>Name: {userData.Name}</p>
+          <p>Username: {userData.Username}</p>
+          <p>Email: {userData.Email}</p>
+          <p>Mobile No.: {userData.ContactInfo}</p>
         </div>
       </div>
 
