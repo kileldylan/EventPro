@@ -10,7 +10,7 @@ export const useSignup = (setError) => {
     setError(null)
 
     const emailCheckResponse = await fetch(
-      `http://localhost:4000/api/user/check-email?email=${email}`
+      `http://localhost:4000/api/user/checkEmail?email=${email}`
     );
     const emailCheckData = await emailCheckResponse.json();
 
@@ -21,7 +21,7 @@ export const useSignup = (setError) => {
 
     // Check if username is unique
     const usernameCheckResponse = await fetch(
-      `http://localhost:4000/api/user/check-username?username=${username}`
+      `http://localhost:4000/api/user/checkUsername?username=${username}`
     );
     const usernameCheckData = await usernameCheckResponse.json();
 

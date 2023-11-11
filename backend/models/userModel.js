@@ -22,7 +22,7 @@ module.exports = {
   },
 
   getUserDetails: (username, callback) => {
-    const query = 'SELECT User_ID, Name, Username, Email, ContactInfo FROM Users WHERE Username = ?';
+    const query = 'SELECT User_ID, Name, Username, Email, ContactInfo, Role_ID FROM Users WHERE Username = ?';
     db.query(query, [username], callback);
   },
 };

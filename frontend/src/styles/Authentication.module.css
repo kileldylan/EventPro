@@ -4,6 +4,7 @@
   justify-content: flex-start;
   flex-direction: column;
   width: 100%;
+  box-sizing: border-box;
   min-height: calc(100vh - 70px);
   color: var(--textColor);
 }

@@ -34,5 +34,9 @@ code {
 
 body{
   background-color: var(--primary);
-  color: while;
+  color: white;
+}
+
+.App{
+  width: 100%;
 }

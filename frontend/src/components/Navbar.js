@@ -17,10 +17,12 @@ const Navbar = () => {
         <div><h1>Event Management System</h1></div>
         <ul>
             <li><Link to="/">Home</Link></li>
-            { user && (<li><Link to="/dashboard">Dashboard</Link></li> )}
-            { user && (<li><Link to="/events">Events</Link></li> )}
-            { user && (<li><Link to="/profile">Profile</Link></li> )}
-            <li><Link to="/contact">Contact Us</Link></li>
+            { user && user.role === 1 && (<li><Link to="/dashboard">Dashboard</Link></li> )}
+            { user && user.role === 1 && (<li><Link to="/events">Events</Link></li> )}
+            { user && user.role === 1 && (<li><Link to="/venues">Venues</Link></li> )}
+            { user && user.role === 2 && (<li><Link to="/events">Events</Link></li> )}
+            { user && user.role === 2 && (<li><Link to="/profile">Profile</Link></li> )}
+            {/* <li><Link to="/contact">Contact Us</Link></li> */}
             { !user && (<li><Link to="/authentication">Login/Signup</Link></li>)}
             { user && (<button className="logout-button" onClick={handleClick}>Log Out</button>)}
         </ul>

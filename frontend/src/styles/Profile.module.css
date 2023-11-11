@@ -1,6 +1,7 @@
 .profile-container{
     min-height: calc(100vh - 70px);
     width: 100%;
+    box-sizing: border-box;
 }
 
 .profile-container .user-section, .profile-container .tickets-section{

@@ -19,12 +19,13 @@ module.exports = {
             res.status(401).json({ error: "Invalid Password!" });
           } else {
             const username = user.Username;
+            const role = user.Role_ID;
             const token = jwt.sign(
               { username: user.Username, role: user.Role_ID },
               process.env.SECRET,
               { expiresIn: "8h" }
             );
-            res.status(200).json({ username, token });
+            res.status(200).json({ username, role, token });
           }
         } else {
           res.status(401).json({ error: "Invalid Email!" });
@@ -55,7 +56,7 @@ module.exports = {
           const token = jwt.sign({ username, role }, process.env.SECRET, {
             expiresIn: "8h",
           });
-          res.status(201).json({ username, token });
+          res.status(201).json({ username, role, token });
         }
       }
     );

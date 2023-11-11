@@ -1,0 +1,112 @@
+.venues-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: calc(100vh - 70px);
+  color: var(--textColor);
+}
+
+.venues-container .cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.venues-container .card {
+  position: relative;
+  background: var(--secondary);
+  border-radius: 10px;
+  width: 300px;
+  height: 300px;
+  padding: 20px;
+  transition: 0.3s;
+  border: 2px solid transparent;
+  box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.3);
+  margin: 15px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.venues-container .card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 7px;
+  background-color: var(--premium);
+  border-radius: 10px 0 0 10px;
+}
+
+.venues-container .card:hover {
+  border-color: var(--premium);
+}
+
+.venues-container .card h3 {
+  font-size: 25px;
+  color: var(--premium);
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.venues-container .card h5 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.venues-container .card p {
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.venues-container .card button {
+  background-color: transparent;
+  color: var(--premium);
+  border: 2px solid var(--premium);
+  padding: 8px 12px;
+  border-radius: 10px;
+  animation-duration: 0.4s;
+  font-weight: 600;
+  font-size: 20px;
+  margin-top: 15px;
+}
+
+.venues-container .card button:hover {
+  background-color: var(--premium);
+  color: white;
+}
+.venues-container .venues-section {
+  height: fit-content;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: column;
+  padding: 20px 20px 50px 20px;
+}
+
+.add-button-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 100px;
+}
+
+.add-button-section button {
+  background-color: transparent;
+  color: var(--premium);
+  margin: 0 20px;
+  border: 2px solid var(--premium);
+  padding: 8px 15px;
+  border-radius: 15px;
+  animation-duration: 0.4s;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.add-button-section button:hover {
+  background-color: var(--premium);
+  color: white;
+}
