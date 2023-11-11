@@ -12,7 +12,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:4000/api/getUser/${username}`);
+        const response = await fetch(`http://127.0.0.1:4000/api/user/getUser/${username}`);
         const data = await response.json();
         setUserData(data);
       } catch (error) {

@@ -10,7 +10,7 @@ export const useSignup = (setError) => {
     setError(null)
 
     const emailCheckResponse = await fetch(
-      `http://localhost:4000/api/check-email?email=${email}`
+      `http://localhost:4000/api/user/check-email?email=${email}`
     );
     const emailCheckData = await emailCheckResponse.json();
 
@@ -21,7 +21,7 @@ export const useSignup = (setError) => {
 
     // Check if username is unique
     const usernameCheckResponse = await fetch(
-      `http://localhost:4000/api/check-username?username=${username}`
+      `http://localhost:4000/api/user/check-username?username=${username}`
     );
     const usernameCheckData = await usernameCheckResponse.json();
 
@@ -30,7 +30,7 @@ export const useSignup = (setError) => {
       return;
     }
 
-    const response = await fetch('http://127.0.0.1:4000/api/signup', {
+    const response = await fetch('http://127.0.0.1:4000/api/user/signup', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({ name, username, email, password, contactInfo })
