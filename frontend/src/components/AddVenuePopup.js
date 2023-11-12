@@ -3,6 +3,60 @@ import styles from "../styles/Popup.module.css";
 
 const AddVenuePopup = ({ onClose }) => {
   const [isVisible, setIsVisible] = useState(true);
+  
+  const [VenueData, setVenueData] = useState({
+    venueName: '',
+      street: '',
+      city: '',
+      district: '',
+      state: '',
+      pincode: '',
+      capacity: 0
+  });
+
+  const handleVenueChange = (e) => {
+    const { name, value } = e.target;
+    setVenueData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch("http://localhost:4000/api/events/addVenue", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(VenueData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Venue added successfully:", data);
+
+        setVenueData({
+          venueName: '',
+          street: '',
+          city: '',
+          district: '',
+          state: '',
+          pincode: '',
+          capacity: 0
+        });
+
+        handleClose();
+      } else {
+        const error = await response.json();
+        console.error("Failed to add venue:", error);
+      }
+    } catch (error) {
+      console.error("Error during venue addition:", error);
+    }
+  }
 
   const handleClose = () => {
     setIsVisible(false);
@@ -20,15 +74,14 @@ const AddVenuePopup = ({ onClose }) => {
             <h1>Add New Venue</h1>
           </div>
           <div className={styles["form"]}>
-            <form>
-              {/* Venue form */}
+            <form onSubmit={handleSubmit}>
               <label>
                 Venue Name:
                 <input
                   type="text"
-                  name="Venue_Name"
-                  // value={VenueData.Venue_Name}
-                  // onChange={handleVenueChange}
+                  name="venueName"
+                  value={VenueData.venueName}
+                  onChange={handleVenueChange}
                   required
                 />
               </label>
@@ -37,9 +90,9 @@ const AddVenuePopup = ({ onClose }) => {
                 Street:
                 <input
                   type="text"
-                  name="Street"
-                  // value={VenueData.Street}
-                  // onChange={handleVenueChange}
+                  name="street"
+                  value={VenueData.street}
+                  onChange={handleVenueChange}
                   required
                 />
               </label>
@@ -48,9 +101,9 @@ const AddVenuePopup = ({ onClose }) => {
                 City:
                 <input
                   type="text"
-                  name="City"
-                  // value={VenueData.City}
-                  // onChange={handleVenueChange}
+                  name="city"
+                  value={VenueData.city}
+                  onChange={handleVenueChange}
                   required
                 />
               </label>
@@ -59,9 +112,9 @@ const AddVenuePopup = ({ onClose }) => {
                 District:
                 <input
                   type="text"
-                  name="District"
-                  // value={VenueData.District}
-                  // onChange={handleVenueChange}
+                  name="district"
+                  value={VenueData.district}
+                  onChange={handleVenueChange}
                   required
                 />
               </label>
@@ -70,9 +123,9 @@ const AddVenuePopup = ({ onClose }) => {
                 State:
                 <input
                   type="text"
-                  name="State"
-                  // value={VenueData.State}
-                  // onChange={handleVenueChange}
+                  name="state"
+                  value={VenueData.state}
+                  onChange={handleVenueChange}
                   required
                 />
               </label>
@@ -81,9 +134,9 @@ const AddVenuePopup = ({ onClose }) => {
               Pincode:
                 <input
                   type="number"
-                  name="Pincode"
-                  // value={VenueData.Pincode}
-                  // onChange={handleVenueChange}
+                  name="pincode"
+                  value={VenueData.pincode}
+                  onChange={handleVenueChange}
                   required
                 />
               </label>
@@ -92,9 +145,9 @@ const AddVenuePopup = ({ onClose }) => {
                 Capacity:
                 <input
                   type="number"
-                  name="Capacity"
-                  // value={VenueData.Capacity}
-                  // onChange={handleVenueChange}
+                  name="capacity"
+                  value={VenueData.capacity}
+                  onChange={handleVenueChange}
                   required
                 />
               </label>

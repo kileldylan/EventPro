@@ -22,8 +22,8 @@ code {
 
   --premium: purple;
   --secondary: white;
-  --primary: #e7e7ff;
-  --tertiary: #EDEBFF;
+  --primary: rgb(242, 242, 255);
+  --tertiary: rgb(175, 167, 250);
   --textColor: black;
 }
 

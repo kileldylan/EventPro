@@ -1,8 +1,63 @@
 import React, { useState } from "react";
 import styles from "../styles/Popup.module.css";
 
-const AddEventPopup = ({ onClose }) => {
+const AddEventPopup = ({ onClose, venues }) => {
   const [isVisible, setIsVisible] = useState(true);
+
+  const [EventData, setEventData] = useState({
+    eventName: "",
+    eventDate: "",
+    venue: "",
+    ticketsCount: 0,
+    organizer: "",
+  });
+
+  const handleEventChange = (e) => {
+    const { name, value } = e.target;
+    setEventData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    console.log(EventData);
+
+    try {
+      const response = await fetch(
+        "http://localhost:4000/api/events/addEvent",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(EventData),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Event added successfully:", data);
+
+        setEventData({
+          eventName: "",
+          eventDate: "",
+          venue: "",
+          ticketsCount: 0,
+          organizer: "",
+        });      
+        
+        handleClose();
+      } else {
+        const error = await response.json();
+        console.error("Failed to add Event:", error);
+      }
+    } catch (error) {
+      console.error("Error during event addition:", error);
+    }
+  };
 
   const handleClose = () => {
     setIsVisible(false);
@@ -20,58 +75,45 @@ const AddEventPopup = ({ onClose }) => {
             <h1>Add New Event</h1>
           </div>
           <div className={styles["form"]}>
-            <form>
-              {/* Event form */}
+            <form onSubmit={handleSubmit}>
               <label>
                 Event Name:
                 <input
                   type="text"
-                  name="Event_Name"
-                  // value={eventData.Event_Name}
-                  // onChange={handleEventChange}
+                  name="eventName"
+                  value={EventData.eventName}
+                  onChange={handleEventChange}
                   required
                 />
               </label>
               <br />
               <label>
-                Event Start Date:
+                Event Date:
                 <input
                   type="date"
-                  name="Event_Date"
-                  // value={eventData.Event_Date}
-                  // onChange={handleEventChange}
+                  name="eventDate"
+                  value={EventData.eventDate}
+                  onChange={handleEventChange}
                   required
                 />
               </label>
               <br />
               <label>
-                Event End Date:
-                <input
-                  type="date"
-                  name="Event_Date"
-                  // value={eventData.Event_Date}
-                  // onChange={handleEventChange}
-                  required
-                />
-              </label>
-              <br />
-              <label>
-                Venue ID:
-                {/* Dropdown menu for venue selection */}
+                Venue:
                 <select
-                  name="Venue_ID"
-                  // value={eventData.Venue_ID}
-                  // onChange={handleEventChange}
+                  name="venue"
+                  value={EventData.venue}
+                  onChange={handleEventChange}
                   required
                 >
                   <option value="" disabled>
                     Select Venue
                   </option>
-                  {/* Dynamically populate options based on available venues */}
-                  {/* For simplicity, you can fetch the venue data from your backend and map over it */}
-                  <option value="1">Venue 1</option>
-                  <option value="2">Venue 2</option>
-                  {/* Add more options as needed */}
+                  {venues.map((venue) => (
+                    <option key={venue.Venue_ID} value={venue.Venue_ID}>
+                      {venue.Venue_Name}
+                    </option>
+                  ))}
                 </select>
               </label>
               <br />
@@ -79,9 +121,9 @@ const AddEventPopup = ({ onClose }) => {
                 Tickets Count:
                 <input
                   type="number"
-                  name="Tickets_Count"
-                  // value={eventData.Tickets_Count}
-                  // onChange={handleEventChange}
+                  name="ticketsCount"
+                  value={EventData.ticketsCount}
+                  onChange={handleEventChange}
                   required
                 />
               </label>
@@ -90,9 +132,9 @@ const AddEventPopup = ({ onClose }) => {
                 Organizer:
                 <input
                   type="text"
-                  name="Organizer"
-                  // value={eventData.Organizer}
-                  // onChange={handleEventChange}
+                  name="organizer"
+                  value={EventData.organizer}
+                  onChange={handleEventChange}
                   required
                 />
               </label>

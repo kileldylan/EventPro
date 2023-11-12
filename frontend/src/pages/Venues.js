@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AddVenuePopup from '../components/AddVenuePopup';
 import styles from "../styles/Venues.module.css";
 
-const Events = () => {
+const Venues = () => {
   const [showPopup, setShowPopup] = useState(false);
 
   const handleAddVenueClick = () => {
@@ -13,36 +13,56 @@ const Events = () => {
     setShowPopup(false);
   };
 
-  const tickets = [
-    {
-      id: 1,
-      eventName: "Event 1",
-      date: "2023-11-15",
-      location: "Venue A",
-      price: "100Rs",
-    },
-    {
-      id: 2,
-      eventName: "Event 2",
-      date: "2023-11-20",
-      location: "Venue B",
-      price: "100Rs",
-    },
-  ];
+  const [venuesData, setVenuesData] = useState([]);
+
+  useEffect(() => {
+    const fetchVenuesData = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:4000/api/events/getVenues`);
+        const data = await response.json();
+        setVenuesData(data);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchVenuesData();
+  }, [showPopup]);
+
+  const handleDeleteVenue = async (venueId) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:4000/api/events/deleteVenue/${venueId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        const updatedEvents = venuesData.filter((venue) => venue.Venue_ID !== venueId);
+        setVenuesData(updatedEvents);
+      } else {
+        console.error('Failed to delete venue');
+      }
+    } catch (error) {
+      console.error('Error during venue deletion:', error);
+    }
+  };
 
   return (
     <div className={styles["venues-container"]}>
       <div className={styles["venues-section"]}>
         <h1>All Venues</h1>
         <div className={styles["cards"]}>
-          {tickets.map((ticket) => (
-            <div className={styles["card"]} key={ticket.id}>
-              <h3>{ticket.eventName}</h3>
+        {venuesData.map((Venue,) => (
+            <div className={styles["card"]} key={Venue.Venue_ID}>
+              <h3>{Venue.Venue_Name}</h3>
               <div>
-                <h5>Date: {ticket.date}</h5>
-                <h5>Location: {ticket.location}</h5>
-                <h5>Price: {ticket.price}</h5>
+                <h5>Street: {Venue.Street}</h5>
+                <h5>City: {Venue.City}</h5>
+                <h5>District: {Venue.District}</h5>
+                <h5>State: {Venue.State}</h5>
+                <h5>Pincode: {Venue.Pincode}</h5>
+                <h5>Capacity: {Venue.Capacity}</h5>
               </div>
+              <button onClick={() => handleDeleteVenue(Venue.Venue_ID)}>Delete</button>
               <button>Details</button>
             </div>
           ))}
@@ -52,10 +72,9 @@ const Events = () => {
         <button onClick={handleAddVenueClick}>Add New Venue</button>
       </div>
 
-      {/* Popup */}
       {showPopup && <AddVenuePopup onClose={handleClosePopup} />}
     </div>
   );
 };
 
-export default Events;
+export default Venues;
