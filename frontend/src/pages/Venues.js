@@ -55,12 +55,12 @@ const Venues = () => {
             <div className={styles["card"]} key={Venue.Venue_ID}>
               <h3>{Venue.Venue_Name}</h3>
               <div>
-                <h5>Street: {Venue.Street}</h5>
-                <h5>City: {Venue.City}</h5>
-                <h5>District: {Venue.District}</h5>
-                <h5>State: {Venue.State}</h5>
-                <h5>Pincode: {Venue.Pincode}</h5>
-                <h5>Capacity: {Venue.Capacity}</h5>
+                <h5><span>Street:</span> {Venue.Street}</h5>
+                <h5><span>City:</span> {Venue.City}</h5>
+                <h5><span>District:</span> {Venue.District}</h5>
+                <h5><span>State:</span> {Venue.State}</h5>
+                <h5><span>Pincode:</span> {Venue.Pincode}</h5>
+                <h5><span>Capacity:</span> {Venue.Capacity}</h5>
               </div>
               <button onClick={() => handleDeleteVenue(Venue.Venue_ID)}>Delete</button>
               {/* <button>Details</button> */}

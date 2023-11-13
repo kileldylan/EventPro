@@ -1,0 +1,46 @@
+.dashboard-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: calc(100vh - 70px);
+  color: var(--textColor);
+  padding: 15px;
+}
+
+.dashboard-container h1{
+  margin-bottom: 25px;
+}
+
+.statistics-container{
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: column;
+  width: 100%;
+  padding-top: 50px;
+}
+
+.statistics-container > div{
+  min-width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.statistics-container > div > div{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--premium);
+  border: 1px solid var(--premium);
+  padding: 10px;
+}
+
+.pie-chart{
+  padding: 5px;
+}

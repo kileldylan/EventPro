@@ -46,4 +46,28 @@ module.exports = {
       });
     });
   },
+
+  getUserTickets: (req, res) => {
+    const { userId } = req.params;
+
+    ticketsModel.getUserTickets(userId, (err, tickets) => {
+      if (err) {
+        console.error("Error retrieving user tickets:", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+      return res.status(200).json({ tickets });
+    });
+  },
+
+  getStatistics: (req, res) => {
+    ticketsModel.getStatistics((err, statistics) => {
+      if (err) {
+        console.error('Error calculating statistics:', err);
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+  
+      res.json(statistics);
+    });
+  }
 };

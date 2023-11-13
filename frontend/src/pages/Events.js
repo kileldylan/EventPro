@@ -63,7 +63,7 @@ const Events = () => {
     };
 
     fetchEventsData();
-  }, [showPopup]);
+  }, [showPopup, showPopup2]);
 
   const handleDeleteEvent = async (eventId) => {
     try {
@@ -102,11 +102,11 @@ const Events = () => {
             <div className={styles["card"]} key={Event.Event_ID}>
               <h3>{Event.Event_Name}</h3>
               <div>
-                <h5>Date: {Event.Event_Date}</h5>
-                <h5>Organizer: {Event.Organizer}</h5>
-                <h5>Venue: {venueMap[Event.Venue_ID]?.Venue_Name}</h5>
-                <h4>
-                  Address:{" "}
+                <h5><span>Date:</span> {Event.Event_Date}</h5>
+                <h5><span>Organizer:</span> {Event.Organizer}</h5>
+                <h5><span>Venue:</span> {venueMap[Event.Venue_ID]?.Venue_Name}</h5>
+                <h5><span>
+                  Address:</span>{" "}
                   {venueMap[Event.Venue_ID]?.Street +
                     ", " +
                     venueMap[Event.Venue_ID]?.City +
@@ -117,9 +117,9 @@ const Events = () => {
                     ", " +
                     venueMap[Event.Venue_ID]?.Pincode +
                     "."}
-                </h4>
-                <h5>Total Tickets: {Event.Tickets_Count}</h5>
-                <h5>Remaining Tickets: {Event.Available_Tickets}</h5>
+                </h5>
+                <h5><span>Total Tickets:</span> {Event.Tickets_Count}</h5>
+                <h5><span>Remaining Tickets:</span> {Event.Available_Tickets}</h5>
               </div>
 
               {user.role === 1 &&  Event.Available_Tickets === Event.Tickets_Count && (

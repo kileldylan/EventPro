@@ -17,5 +17,8 @@ router.delete('/deleteEvent/:eventId', eventsController.deleteOneEvent);
 router.delete('/deleteVenue/:venueId', eventsController.deleteOneVenue);
 
 router.post('/purchaseTicket', ticketsController.purchaseTicket);
+router.get('/getTickets/:userId', ticketsController.getUserTickets);
+
+router.get('/getStatistics', ticketsController.getStatistics);
 
 module.exports = router
