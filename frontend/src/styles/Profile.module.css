@@ -26,6 +26,16 @@
     flex-direction: column;
 }
 
+.profile-container .user-section p{
+  font-weight: 500;
+  font-size: 20px;
+}
+
+.profile-container .user-section p span{
+  font-weight: 600;
+  font-size: 22px;
+}
+
 .profile-container .cards {
   display: flex;
   flex-wrap: wrap;
@@ -37,7 +47,7 @@
   background: var(--secondary);
   border-radius: 10px;
   width: 300px;
-  height: 300px;
+  height: 375px;
   padding: 20px;
   transition: 0.3s;
   border: 2px solid transparent;
@@ -91,19 +101,23 @@
   font-weight: 500;
 }
 
-.profile-container .card button {
+.profile-container .card .qr-code{
+  align-self: center;
+  width: 50%;
+  aspect-ratio: 1;
+  margin: 30px 0 10px 0;
+  padding: 10px;
+  border: 1px solid var(--premium);
+}
+
+.profile-container .card p {
   background-color: transparent;
   color: var(--premium);
-  border: 2px solid var(--premium);
+  border: 1px solid var(--premium);
   padding: 8px 12px;
   border-radius: 10px;
   animation-duration: 0.4s;
-  font-weight: 600;
-  font-size: 20px;
-  margin-top: 15px;
-}
-
-.profile-container .card button:hover {
-  background-color: var(--premium);
-  color: white;
+  font-weight: 500;
+  font-size: 16px;
+  align-self: center;
 }

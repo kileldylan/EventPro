@@ -50,10 +50,10 @@ const Profile = () => {
       <div className={styles["user-section"]}>
         <h1>User Details</h1>
         <div>
-          <p>Name: {userData.Name}</p>
-          <p>Username: {userData.Username}</p>
-          <p>Email: {userData.Email}</p>
-          <p>Mobile No.: {userData.ContactInfo}</p>
+          <p><span>Name:</span> {userData.Name}</p>
+          <p><span>Username:</span> {userData.Username}</p>
+          <p><span>Email:</span> {userData.Email}</p>
+          <p><span>Mobile No.:</span> {userData.ContactInfo}</p>
         </div>
       </div>
 
@@ -68,8 +68,8 @@ const Profile = () => {
                 <h5><span>Date:</span> {ticket.Event_Date}</h5>
                 <h5><span>Location:</span> {ticket.Venue_Name}</h5>
               </div>
-              <QRCode value={`Event: ${ticket.Event_Name}\nDate: ${ticket.Event_Date}\nEvent Organizer: ${ticket.Organizer}\nVenue Location: ${ticket.Venue_Name + ", " + ticket.Street + ", " + ticket.City + ", " + ticket.District + ", " + ticket.State + ", " + ticket.Pincode}\nPrice: ${ticket.Ticket_Price}\nTicket ID: ${ticket.Ticket_ID}\nBooking ID: ${ticket.Booking_ID}\nBooking Date: ${ticket.Booking_Date}\nPayment_Method: ${ticket.Payment_Method}\nAmount Paid: ${ticket.Amount}\n`} />
-              <button>Scan QR for Details</button>
+              <QRCode value={`Event: ${ticket.Event_Name}\nDate: ${ticket.Event_Date}\nEvent Organizer: ${ticket.Organizer}\nVenue Location: ${ticket.Venue_Name + ", " + ticket.Street + ", " + ticket.City + ", " + ticket.District + ", " + ticket.State + ", " + ticket.Pincode}\nPrice: Rs.${ticket.Ticket_Price}\nTicket ID: ${ticket.Ticket_ID}\nBooking ID: ${ticket.Booking_ID}\nBooking Date: ${ticket.Booking_Date}\nPayment Method: ${ticket.Payment_Method}\nAmount Paid: Rs.${ticket.Amount}\n`} className={styles["qr-code"]} />
+              <p>Scan QR for Details</p>
             </div>
           ))}
         </div>

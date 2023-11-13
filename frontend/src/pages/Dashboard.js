@@ -65,9 +65,11 @@ const Dashboard = () => {
                 `${datum.Event_Name}\n${datum.totalTicketsSold}`
               }
               style={{
-                labels: { fill: "#2c3e50", fontSize: 10, fontWeight: "bold" },
+                labels: { fill: "#2c3e50", fontSize: 15, fontWeight: "bold" },
               }}
               theme={VictoryTheme.material}
+              width={500}
+              height={500}
               />
               </div>
               <h3>Percentage of Tickets Sold by Event</h3>

@@ -83,7 +83,7 @@ const BookEventPopup = ({ onClose, eventToBook }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if(EventData.Available_Tickets < formValues.numberOfTickets){
+    if (EventData.Available_Tickets < formValues.numberOfTickets) {
       console.log("These many tickets not available.");
       return;
     }
@@ -144,23 +144,25 @@ const BookEventPopup = ({ onClose, eventToBook }) => {
             <h1>Book Ticket</h1>
           </div>
           <div>
-            <div>
-              <h3>Event Details:</h3>
-              <p>Event Name: {EventData.Event_Name}</p>
-              <p>Event Date: {EventData.Event_Date}</p>
-              <p>Event Organizer: {EventData.Organizer}</p>
-              <p>Total Tickets Count: {EventData.Tickets_Count}</p>
-              <p>Remaining Tickets Count: {EventData.Available_Tickets}</p>
-            </div>
-            <div>
-              <h3>Your Details:</h3>
-              <p>Name: {userData.Name}</p>
-              <p>Email: {userData.Email}</p>
-              <p>Mobile No.: {userData.ContactInfo}</p>
+            <div className={styles["info-section"]}>
+              <div>
+                <h3>Event Details:</h3>
+                <p>Event Name: {EventData.Event_Name}</p>
+                <p>Event Date: {EventData.Event_Date}</p>
+                <p>Event Organizer: {EventData.Organizer}</p>
+                <p>Total Tickets Count: {EventData.Tickets_Count}</p>
+                <p>Remaining Tickets Count: {EventData.Available_Tickets}</p>
+              </div>
+              <div>
+                <h3>Your Details:</h3>
+                <p>Name: {userData.Name}</p>
+                <p>Email: {userData.Email}</p>
+                <p>Mobile No.: {userData.ContactInfo}</p>
+              </div>
             </div>
             <div className={styles["form"]}>
-              <h3>Payment Info:</h3>
               <form onSubmit={handleSubmit}>
+              <h3>Payment Info:</h3>
                 <label>
                   Number of Tickets:
                   <input
