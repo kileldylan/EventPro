@@ -1,69 +1,49 @@
 const ticketsModel = require("../models/ticketsModel.js");
 
 module.exports = {
-  createBooking: (req, res) => {
-    const { userID, eventID } = req.body;
+  purchaseTicket: (req, res) => {
+    const { userID, eventID, numberOfTickets, paymentMethod, amount } = req.body;
 
-    ticketsModel.createBooking(userID, eventID, (err, bookingResults) => {
-      if (err) {
-        console.error("Error creating booking:", err);
+    ticketsModel.createBooking(userID, eventID, (bookingErr, bookingResults) => {
+      if (bookingErr) {
+        console.error("Error purchasing ticket:", bookingErr);
         return res.status(500).json({ error: "Internal Server Error" });
       }
 
       const bookingID = bookingResults.insertId;
-      return res.status(200).json({ bookingID });
-    });
-  },
 
-  createTickets: (req, res) => {
-    const { eventID, numberOfTickets } = req.body;
+      ticketsModel.createTickets(eventID, numberOfTickets, (ticketErr, ticketIDs) => {
+        if (ticketErr) {
+          console.error("Error creating tickets:", ticketErr);
+          return res.status(500).json({ error: "Internal Server Error" });
+        }
 
-    ticketsModel.createTickets(eventID, numberOfTickets, (err, ticketIDs) => {
-      if (err) {
-        console.error("Error creating tickets:", err);
-        return res.status(500).json({ error: "Internal Server Error" });
-      }
+        ticketsModel.createBookingDetails(bookingID, ticketIDs, (detailsErr) => {
+          if (detailsErr) {
+            console.error("Error creating booking details:", detailsErr);
+            return res.status(500).json({ error: "Internal Server Error" });
+          }
 
-      return res.status(200).json({ ticketIDs });
-    });
-  },
+          ticketsModel.updateAvailableTickets(eventID, numberOfTickets, (updateErr) => {
+              if (updateErr) {
+                console.error("Error updating available tickets:", updateErr);
+                return res.status(500).json({ error: "Internal Server Error" });
+              }
 
-  createBookingDetails: (req, res) => {
-    const { bookingID, ticketIDs } = req.body;
+              ticketsModel.createPayment(bookingID, paymentMethod, amount, (paymentErr) => {
+                if (paymentErr) {
+                  console.error("Error creating payment entry:", paymentErr);
+                  return res
+                    .status(500).json({ error: "Internal Server Error" });
+                }
 
-    ticketsModel.createBookingDetails(bookingID, ticketIDs, (err) => {
-      if (err) {
-        console.error("Error creating booking details:", err);
-        return res.status(500).json({ error: "Internal Server Error" });
-      }
-
-      return res.status(200).json({ message: "Booking details created successfully" });
-    });
-  },
-
-  updateAvailableTickets: (req, res) => {
-    const { eventID, numberOfTickets } = req.body;
-
-    ticketsModel.updateAvailableTickets(eventID, numberOfTickets, (err) => {
-      if (err) {
-        console.error("Error updating available tickets:", err);
-        return res.status(500).json({ error: "Internal Server Error" });
-      }
-
-      return res.status(200).json({ message: "Available tickets updated successfully" });
-    });
-  },
-
-  createPayment: (req, res) => {
-    const { bookingID, paymentMethod, amount } = req.body;
-
-    ticketsModel.createPayment(bookingID, paymentMethod, amount, (err) => {
-      if (err) {
-        console.error("Error creating payment entry:", err);
-        return res.status(500).json({ error: "Internal Server Error" });
-      }
-
-      return res.status(200).json({ message: "Payment entry created successfully" });
+                return res
+                  .status(200).json({ message: "Ticket purchased successfully" });
+              });
+            }
+          );
+        });
+      });
     });
   },
 };
