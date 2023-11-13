@@ -9,6 +9,7 @@ const AddEventPopup = ({ onClose, venues }) => {
     eventDate: "",
     venue: "",
     ticketsCount: 0,
+    ticketPrice: 0,
     organizer: "",
   });
 
@@ -38,14 +39,15 @@ const AddEventPopup = ({ onClose, venues }) => {
       );
 
       if (response.ok) {
-        const data = await response.json();
-        console.log("Event added successfully:", data);
+        // const data = await response.json();
+        // console.log("Event added successfully:", data);
 
         setEventData({
           eventName: "",
           eventDate: "",
           venue: "",
           ticketsCount: 0,
+          ticketPrice: 0,
           organizer: "",
         });      
         
@@ -123,6 +125,17 @@ const AddEventPopup = ({ onClose, venues }) => {
                   type="number"
                   name="ticketsCount"
                   value={EventData.ticketsCount}
+                  onChange={handleEventChange}
+                  required
+                />
+              </label>
+              <br />
+              <label>
+                Tickets Price:
+                <input
+                  type="number"
+                  name="ticketPrice"
+                  value={EventData.ticketPrice}
                   onChange={handleEventChange}
                   required
                 />

@@ -35,8 +35,8 @@ const AddVenuePopup = ({ onClose }) => {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        console.log("Venue added successfully:", data);
+        // const data = await response.json();
+        // console.log("Venue added successfully:", data);
 
         setVenueData({
           venueName: '',

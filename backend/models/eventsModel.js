@@ -27,7 +27,7 @@ module.exports = {
     db.query(query,callback);
   },
 
-  createEvent: (eventName, eventDate, venue, ticketsCount, organizer, callback) => {
+  createEvent: (eventName, eventDate, venue, ticketsCount, ticketPrice, organizer, availabelTickets, callback) => {
     const checkQuery = 'SELECT COUNT(*) AS count FROM Events WHERE Event_Name = ? AND Event_Date = ? AND Venue_ID = ?';
     
     db.query(checkQuery, [eventName, eventDate,venue], (checkErr, checkResults) => {
@@ -42,15 +42,25 @@ module.exports = {
         return callback({ message: 'Event with the same name already exists' });
       }
 
-      const insertQuery = 'INSERT INTO Events (Event_Name, Event_Date, Organizer, Tickets_Count, Venue_ID) VALUES (?, ?, ?, ?, ?)';
+      const insertQuery = 'INSERT INTO Events (Event_Name, Event_Date, Organizer, Tickets_Count, Ticket_Price, Available_Tickets, Venue_ID) VALUES (?, ?, ?, ?, ?, ?, ?)';
 
-      db.query(insertQuery, [eventName, eventDate, organizer, ticketsCount, venue], callback);
+      db.query(insertQuery, [eventName, eventDate, organizer, ticketsCount, ticketPrice, availabelTickets, venue], callback);
     });
   },
 
   getAllEvents: (callback) => {
     const query = 'SELECT * from Events';
     db.query(query,callback);
+  },
+
+  getOneEvent: (eventId, callback) => {
+    const query = 'SELECT * from Events WHERE Event_ID = ?';
+    db.query(query, [eventId], callback);
+  },
+
+  getOneVenue: (venueId, callback) => {
+    const query = 'SELECT * from Venues WHERE Venue_ID = ?';
+    db.query(query, [venueId], callback);
   },
 
   deleteEvent: (eventId, callback) => {

@@ -63,7 +63,7 @@ const Venues = () => {
                 <h5>Capacity: {Venue.Capacity}</h5>
               </div>
               <button onClick={() => handleDeleteVenue(Venue.Venue_ID)}>Delete</button>
-              <button>Details</button>
+              {/* <button>Details</button> */}
             </div>
           ))}
         </div>

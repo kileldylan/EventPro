@@ -51,15 +51,20 @@ module.exports = {
       eventDate,
       venue,
       ticketsCount,
+      ticketPrice,
       organizer
     } = req.body;
+
+    const availabelTickets = ticketsCount;
 
     eventsModel.createEvent(
       eventName,
       eventDate,
       venue,
       ticketsCount,
+      ticketPrice,
       organizer,
+      availabelTickets,
       (err) => {
         if (err && err.message === 'Event with the same name already exists') {
           res.status(500).json({ error: 'Event Already Exists' });
@@ -81,6 +86,32 @@ module.exports = {
         res.status(500).json({ error: "Internal Server Error" });
       } else {
         res.status(200).json(result);
+      }
+    });
+  },
+
+  getOneEvent: (req, res) => {
+    const { eventId } = req.params;
+
+    eventsModel.getOneEvent(eventId, (err, result) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+      } else {
+        res.status(200).json(result[0]);
+      }
+    });
+  },
+
+  getOneVenue: (req, res) => {
+    const { venueId } = req.params;
+
+    eventsModel.getOneVenue(venueId, (err, result) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+      } else {
+        res.status(200).json(result[0]);
       }
     });
   },
