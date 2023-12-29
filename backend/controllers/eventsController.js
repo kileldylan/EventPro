@@ -49,6 +49,8 @@ module.exports = {
     const {
       eventName,
       eventDate,
+      eventStartTime,
+      eventEndTime,
       venue,
       ticketsCount,
       ticketPrice,
@@ -60,6 +62,8 @@ module.exports = {
     eventsModel.createEvent(
       eventName,
       eventDate,
+      eventStartTime,
+      eventEndTime,
       venue,
       ticketsCount,
       ticketPrice,
@@ -68,6 +72,9 @@ module.exports = {
       (err) => {
         if (err && err.message === 'Event with the same name already exists') {
           res.status(500).json({ error: 'Event Already Exists' });
+        }
+        else if (err && err.message === 'Venue is already booked!') {
+          res.status(500).json({ error: 'Venue is already booked!' });
         }
         else if (err) {
           console.error("Error executing query:", err);

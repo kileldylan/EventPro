@@ -68,7 +68,7 @@ const Profile = () => {
                 <h5><span>Date:</span> {ticket.Event_Date}</h5>
                 <h5><span>Location:</span> {ticket.Venue_Name}</h5>
               </div>
-              <QRCode value={`Event: ${ticket.Event_Name}\nDate: ${ticket.Event_Date}\nEvent Organizer: ${ticket.Organizer}\nVenue Location: ${ticket.Venue_Name + ", " + ticket.Street + ", " + ticket.City + ", " + ticket.District + ", " + ticket.State + ", " + ticket.Pincode}\nPrice: Rs.${ticket.Ticket_Price}\nTicket ID: ${ticket.Ticket_ID}\nBooking ID: ${ticket.Booking_ID}\nBooking Date: ${ticket.Booking_Date}\nPayment Method: ${ticket.Payment_Method}\nAmount Paid: Rs.${ticket.Amount}\n`} className={styles["qr-code"]} />
+              <QRCode value={`Event: ${ticket.Event_Name}\nDate: ${ticket.Event_Date}\nTime: ${ticket.Event_Start_Time} to ${ticket.Event_End_Time}\nEvent Organizer: ${ticket.Organizer}\nVenue Location: ${ticket.Venue_Name + ", " + ticket.Street + ", " + ticket.City + ", " + ticket.District + ", " + ticket.State + ", " + ticket.Pincode}\nPrice: Rs.${ticket.Ticket_Price}\nTicket ID: ${ticket.Ticket_ID}\nBooking ID: ${ticket.Booking_ID}\nBooking Date: ${ticket.Booking_Date}\nPayment Method: ${ticket.Payment_Method}\nAmount Paid: Rs.${ticket.Amount}\n`} className={styles["qr-code"]} />
               <p>Scan QR for Details</p>
             </div>
           ))}

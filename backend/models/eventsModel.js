@@ -27,9 +27,11 @@ module.exports = {
     db.query(query,callback);
   },
 
-  createEvent: (eventName, eventDate, venue, ticketsCount, ticketPrice, organizer, availabelTickets, callback) => {
+  createEvent: (eventName, eventDate, eventStartTime, eventEndTime, venue, ticketsCount, ticketPrice, organizer, availabelTickets, callback) => {
     const checkQuery = 'SELECT COUNT(*) AS count FROM Events WHERE Event_Name = ? AND Event_Date = ? AND Venue_ID = ?';
     
+    const checkClashQuery = 'SELECT COUNT(*) AS count FROM Events WHERE Venue_ID = ? AND Event_Date = ? AND ((Event_Start_Time < ? AND Event_End_Time > ?) OR (Event_Start_Time >= ? AND Event_End_Time <= ?))';
+
     db.query(checkQuery, [eventName, eventDate,venue], (checkErr, checkResults) => {
       if (checkErr) {
         console.error('Error checking for duplicate event:', checkErr);
@@ -42,9 +44,22 @@ module.exports = {
         return callback({ message: 'Event with the same name already exists' });
       }
 
-      const insertQuery = 'INSERT INTO Events (Event_Name, Event_Date, Organizer, Tickets_Count, Ticket_Price, Available_Tickets, Venue_ID) VALUES (?, ?, ?, ?, ?, ?, ?)';
-
-      db.query(insertQuery, [eventName, eventDate, organizer, ticketsCount, ticketPrice, availabelTickets, venue], callback);
+      db.query(checkClashQuery, [venue, eventDate, eventStartTime, eventEndTime, eventStartTime, eventEndTime], (checkErr, checkResults) => {
+        if (checkErr) {
+          console.error('Error checking for clashing event:', checkErr);
+          return callback(checkErr);
+        }
+  
+        const eventCount = checkResults[0].count;
+  
+        if (eventCount > 0) {
+          return callback({ message: 'Venue is already booked!' });
+        }
+  
+        const insertQuery = 'INSERT INTO Events (Event_Name, Event_Date, Event_Start_Time, Event_End_Time, Organizer, Tickets_Count, Ticket_Price, Available_Tickets, Venue_ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  
+        db.query(insertQuery, [eventName, eventDate, eventStartTime, eventEndTime, organizer, ticketsCount, ticketPrice, availabelTickets, venue], callback);
+      });
     });
   },
 

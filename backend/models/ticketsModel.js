@@ -65,6 +65,8 @@ module.exports = {
         Events.Event_Name,
         Events.Ticket_Price,
         Events.Event_Date,
+        Events.Event_Start_Time,
+        Events.Event_End_Time,
         Events.Organizer,
         Venues.Venue_Name,
         Venues.Street,

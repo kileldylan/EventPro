@@ -7,6 +7,8 @@ const AddEventPopup = ({ onClose, venues }) => {
   const [EventData, setEventData] = useState({
     eventName: "",
     eventDate: "",
+    eventStartTime: "",
+    eventEndTime: "",
     venue: "",
     ticketsCount: 0,
     ticketPrice: 0,
@@ -95,6 +97,28 @@ const AddEventPopup = ({ onClose, venues }) => {
                   type="date"
                   name="eventDate"
                   value={EventData.eventDate}
+                  onChange={handleEventChange}
+                  required
+                />
+              </label>
+              <br />
+              <label>
+                Event Start Time:
+                <input
+                  type="time"
+                  name="eventStartTime"
+                  value={EventData.eventStartTime}
+                  onChange={handleEventChange}
+                  required
+                />
+              </label>
+              <br />
+              <label>
+                Event End Time:
+                <input
+                  type="time"
+                  name="eventEndTime"
+                  value={EventData.eventEndTime}
                   onChange={handleEventChange}
                   required
                 />
