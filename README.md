@@ -13,5 +13,7 @@ Simple Database Management System Project to help event organizers simplify the 
     `cd frontend`
     `npm start`
 
+    `start mysql first`
+    
     `cd backend`
-    `npm run dev`
+    `node server.js`
