@@ -1,162 +1,243 @@
-import React, { useState, useEffect } from "react";
-import AddEventPopup from "../components/AddEventPopup";
-import BookEventPopup from "../components/BookEventPopup";
-import styles from "../styles/Events.module.css";
-
-import { useAuthContext } from "../hooks/useAuthContext";
+import { useState, useEffect } from 'react';
+import { 
+  Button, Card, Chip, Container, 
+  IconButton, Paper, Stack, Typography, CircularProgress
+} from '@mui/material';
+import { Add, Refresh, Search, Edit, Delete } from '@mui/icons-material';
+import { DataGrid } from '@mui/x-data-grid';
+import axios from 'axios';
+import EventForm from './EventForm';
 
 const Events = () => {
-  const { user } = useAuthContext();
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [openForm, setOpenForm] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [venues, setVenues] = useState([]);
 
-  const [showPopup, setShowPopup] = useState(false);
-  const [EventsData, setEventsData] = useState([]);
-  const [venuesData, setVenuesData] = useState([]);
+  const backendUrl = 'http://localhost:5000/api';
 
-  const [showPopup2, setShowPopup2] = useState(false);
-  const [clickedEventID, setClickedEventID] = useState();
-
-  const handleAddEventClick = () => {
-    setShowPopup(true);
-  };
-
-  const handleClosePopup = () => {
-    setShowPopup(false);
-  };
-
-  const handleClosePopup2 = () => {
-    setShowPopup2(false);
-    setClickedEventID();
-  };
-
-  const handleBookTicketClick = (eventId) => {
-    setClickedEventID(eventId);
-    setShowPopup2(true);
-  };
-
-  useEffect(() => {
-    const fetchVenuesData = async () => {
-      try {
-        const response = await fetch(
-          `http://127.0.0.1:4000/api/events/getVenues`
-        );
-        const data = await response.json();
-        setVenuesData(data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    fetchVenuesData();
-  }, []);
-
-  useEffect(() => {
-    const fetchEventsData = async () => {
-      try {
-        const response = await fetch(
-          `http://127.0.0.1:4000/api/events/getEvents`
-        );
-        const data = await response.json();
-        setEventsData(data);
-      } catch (error) {
-        console.error("Error fetching events data:", error);
-      }
-    };
-
-    fetchEventsData();
-  }, [showPopup, showPopup2]);
-
-  const handleDeleteEvent = async (eventId) => {
+  const fetchEvents = async () => {
     try {
-      const response = await fetch(
-        `http://127.0.0.1:4000/api/events/deleteEvent/${eventId}`,
-        {
-          method: "DELETE",
-        }
-      );
+      setLoading(true);
+      const response = await axios.get(`${backendUrl}/events/getEvents`);
+      
+      // Map the response data to ensure consistent field names
+      const formattedEvents = response.data.map(event => ({
+        Event_ID: event.Event_ID,
+        Event_Name: event.Event_Name,
+        Organizer: event.Organizer,
+        Event_Date: event.Event_Date,
+        Event_Start_Time: event.Event_Start_Time,
+        Event_End_Time: event.Event_End_Time,
+        Tickets_Count: event.Tickets_Count,
+        Available_Tickets: event.Available_Tickets,
+        Ticket_Price: event.Ticket_Price,
+        Venue_ID: event.Venue_ID
+      }));
 
-      if (response.ok) {
-        const updatedEvents = EventsData.filter(
-          (event) => event.Event_ID !== eventId
-        );
-        setEventsData(updatedEvents);
-      } else {
-        console.error("Failed to delete event");
-      }
+      setEvents(formattedEvents);
     } catch (error) {
-      console.error("Error during event deletion:", error);
+      console.error('Error fetching events:', error);
+      setEvents([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const venueMap = venuesData.reduce((acc, venue) => {
-    acc[venue.Venue_ID] = venue;
-    return acc;
-  }, {});
+  const fetchVenues = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/events/getVenues`);
+      setVenues(response.data);
+    } catch (error) {
+      console.error('Error fetching venues:', error);
+      setVenues([]);
+    }
+  };
 
+  useEffect(() => {
+    fetchEvents();
+    fetchVenues();
+  }, []);
+
+  const handleDelete = async (id) => {
+    try {
+      setLoading(true);
+      await axios.delete(`${backendUrl}/events/deleteEvent/${id}`);
+      await fetchEvents();
+    } catch (error) {
+      console.error('Error deleting event:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredEvents = events.filter(event => {
+    const search = searchTerm.toLowerCase();
+    return (
+      (event.Event_Name?.toLowerCase() || '').includes(search) ||
+      (event.Organizer?.toLowerCase() || '').includes(search)
+    );
+  });
+
+  const columns = [
+    {
+      field: 'Event_ID',
+      headerName: 'ID',
+      width: 70,
+    },
+    {
+      field: 'Event_Name',
+      headerName: 'Event Name',
+      width: 200,
+    },
+    {
+      field: 'Organizer',
+      headerName: 'Organizer',
+      width: 150,
+    },
+    {
+      field: 'Event_Date',
+      headerName: 'Date',
+      width: 120,
+      valueFormatter: (params) => {
+        const raw = params.value;
+        if (!raw) return 'No date';
+
+        const parsedDate = new Date(raw);
+        if (isNaN(parsedDate)) {
+          return 'Invalid date';
+        }
+
+        return parsedDate.toLocaleDateString();
+      }
+    },
+    {
+      field: 'Time',
+      headerName: 'Time',
+      width: 150,
+      valueGetter: (params) => {
+        if (!params || !params.row) return ''; // prevent crash
+        return params.row.Event_Name ?? '';
+      },
+    },
+    {
+      field: 'Available_Tickets',
+      headerName: 'Availability',
+      width: 150,
+      renderCell: (params) => (
+        <Chip
+          label={`${params.value}/${params.row.Tickets_Count}`}
+          color={params.value > 0 ? 'success' : 'error'}
+          variant="outlined"
+        />
+      ),
+    },
+    {
+      field: 'Ticket_Price',
+      headerName: 'Price',
+      width: 100,
+      valueFormatter: (params) => {
+        const value = Number(params?.value);
+        return isNaN(value) ? '$0.00' : `$${value.toFixed(2)}`;
+      },
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 150,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          <IconButton
+            size="small"
+            onClick={() => {
+              setSelectedEvent(params.row);
+              setOpenForm(true);
+            }}
+          >
+            <Edit fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            color="error"
+            onClick={() => handleDelete(params.row.Event_ID)}
+          >
+            <Delete fontSize="small" />
+          </IconButton>
+        </Stack>
+      ),
+    },
+  ];
 
   return (
-    <div className={styles["events-container"]}>
-      <div className={styles["events-section"]}>
-        <h1>All Events</h1>
-        <div className={styles["cards"]}>
-          {EventsData.map((Event) => (
-            <div className={styles["card"]} key={Event.Event_ID}>
-              <h3>{Event.Event_Name}</h3>
-              <div>
-                <h5><span>Date:</span> {Event.Event_Date}</h5>
-                <h5><span>Organizer:</span> {Event.Organizer}</h5>
-                <h5><span>Venue:</span> {venueMap[Event.Venue_ID]?.Venue_Name}</h5>
-                <h5><span>
-                  Address:</span>{" "}
-                  {venueMap[Event.Venue_ID]?.Street +
-                    ", " +
-                    venueMap[Event.Venue_ID]?.City +
-                    ", " +
-                    venueMap[Event.Venue_ID]?.District +
-                    ", " +
-                    venueMap[Event.Venue_ID]?.State +
-                    ", " +
-                    venueMap[Event.Venue_ID]?.Pincode +
-                    "."}
-                </h5>
-                <h5><span>Total Tickets:</span> {Event.Tickets_Count}</h5>
-                <h5><span>Remaining Tickets:</span> {Event.Available_Tickets}</h5>
-              </div>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Card elevation={3} sx={{ p: 3 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
+          <Typography variant="h6" component="h2">
+            All Events
+          </Typography>
+          <Stack direction="row" spacing={2}>
+            <Paper
+              component="form"
+              sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 300 }}
+              elevation={1}
+            >
+              <Search sx={{ color: 'action.active', mr: 1 }} />
+              <input
+                placeholder="Search events..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  border: 'none',
+                  outline: 'none',
+                  flex: 1,
+                  padding: '8px 0',
+                }}
+              />
+            </Paper>
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => {
+                setSelectedEvent(null);
+                setOpenForm(true);
+              }}
+            >
+              Create Event
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<Refresh />}
+              onClick={fetchEvents}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={20} /> : 'Refresh'}
+            </Button>
+          </Stack>
+        </Stack>
 
-              {user.role === 1 &&  Event.Available_Tickets === Event.Tickets_Count && (
-                <button onClick={() => handleDeleteEvent(Event.Event_ID)}>
-                  Delete
-                </button>
-              )}
-              {user.role === 1 && Event.Available_Tickets !== Event.Tickets_Count && (
-                <button>
-                  Can't Delete! Tickets already sold!
-                </button>
-              )}
-
-              {user.role === 2 && (
-                <button onClick={() => handleBookTicketClick(Event.Event_ID)}>
-                  Book Ticket
-                </button>
-              )}
-            </div>
-          ))}
+        <div style={{ height: 600, width: '100%' }}>
+          <DataGrid
+            rows={filteredEvents}
+            columns={columns}
+            loading={loading}
+            pageSize={10}
+            rowsPerPageOptions={[10, 25, 50]}
+            getRowId={(row) => row?.Event_ID ?? Math.random()}
+            disableSelectionOnClick
+          />
         </div>
-      </div>
+      </Card>
 
-      {user.role === 1 && (
-        <div className={styles["add-button-section"]}>
-          <button onClick={handleAddEventClick}>Add New Event</button>
-        </div>
-      )}
-
-      {showPopup && (
-        <AddEventPopup onClose={handleClosePopup} venues={venuesData} />
-      )}
-
-      {showPopup2 && (
-        <BookEventPopup onClose={handleClosePopup2} eventToBook={clickedEventID} />
-      )}
-    </div>
+      <EventForm
+        open={openForm}
+        onClose={() => setOpenForm(false)}
+        event={selectedEvent}
+        refreshEvents={fetchEvents}
+        venues={venues}
+      />
+    </Container>
   );
 };
 

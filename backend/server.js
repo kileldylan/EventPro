@@ -8,7 +8,7 @@ const userRoutes = require('./routes/user')
 const eventsRoutes = require('./routes/events')
 
 const app = express();
-const port = 4000;
+const port = 5000;
 
 db.connect((err) => {
   if (err) {

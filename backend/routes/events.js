@@ -7,6 +7,9 @@ const router = express.Router()
 router.post('/addVenue', eventsController.addVenue);
 router.post('/addEvent', eventsController.addEvent);
 
+router.put("/updateEvent/:eventId", eventsController.updateOneEvent);
+router.put("/updateVenue/:venueId", eventsController.updateVenue);
+
 router.get('/getVenues', eventsController.getAllVenues);
 router.get('/getEvents', eventsController.getAllEvents);
 

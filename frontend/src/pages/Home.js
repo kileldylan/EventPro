@@ -6,7 +6,7 @@ const Home = () => {
   return (
     <div className={styles['home-container']}>
       <h1>Welcome to Event Management System</h1>
-      <Link to="/authentication"><button>Get Started</button></Link>
+      <Link to="/dashboard"><button>Get Started</button></Link>
     </div>
   )
 }
