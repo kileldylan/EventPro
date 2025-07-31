@@ -77,7 +77,8 @@ const Navbar = () => {
   const userLinks = [
     { path: "/events", label: "Events", icon: <CalendarMonth /> },
     { path: "/venues", label: "Venues", icon: <LocationCity /> },
-    { path: "/tickets", label: "My Tickets", icon: <Receipt /> }
+    { path: "/tickets", label: "My Tickets", icon: <Receipt /> },
+    { path: "/book_tickets", label: "Book Tickets", icon: <Receipt /> }
   ];
 
   // Determine which links to show based on role

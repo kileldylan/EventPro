@@ -55,10 +55,7 @@ const Dashboard = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" gutterBottom color="text.secondary">Dashboard</Typography>
-        <Typography variant="body1" color="text.secondary">
-          Overview of UPI payment verification and attendance
-        </Typography>
+        <Typography variant="h4" gutterBottom color="text.primary">Dashboard</Typography>
       </Box>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>

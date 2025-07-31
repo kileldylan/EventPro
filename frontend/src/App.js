@@ -19,6 +19,7 @@ import Venues from "./pages/Venues";
 import ActivityLog from "./pages/Activity_Log";
 import Tickets from "./pages/Tickets";
 import UserDashboard from "./pages/UserDashboard";
+import TicketBooking from "./pages/TicketBooking";
 
 // Role-based route wrapper
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -79,6 +80,11 @@ function App() {
           <Route path="/tickets" element={
             <ProtectedRoute>
               <Tickets />
+            </ProtectedRoute>
+          } />
+          <Route path="/book_tickets" element={
+            <ProtectedRoute>
+              <TicketBooking />
             </ProtectedRoute>
           } />
           <Route path="/profile" element={

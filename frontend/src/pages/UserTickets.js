@@ -15,7 +15,7 @@ const UserTickets = ({ userId }) => {
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/getTickets/${userId}`);
+      const response = await axios.get(`${backendUrl}/events/getTickets/${userId}`);
       
       const formattedTickets = response.data.map(ticket => ({
         Ticket_ID: ticket.Ticket_ID,

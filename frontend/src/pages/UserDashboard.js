@@ -71,7 +71,7 @@ const UserDashboard = () => {
           const response = await axios.get(`${backendUrl}/events/getEvents`);
           setEvents(response.data);
         } else if (activeTab === 1 && userId) {
-          const response = await axios.get(`${backendUrl}/tickets/getTickets/${userId}`);
+          const response = await axios.get(`${backendUrl}/events/getTickets/${userId}`);
           setTickets(response.data);
         } else if (activeTab === 2) {
           const response = await axios.get(`${backendUrl}/events/getVenues`);
@@ -269,53 +269,91 @@ const UserDashboard = () => {
             <Typography variant="h6" gutterBottom>
               Your Tickets
             </Typography>
-            {tickets.length === 0 ? (
-              <Typography variant="body1" align="center" sx={{ my: 4 }}>
-                You don't have any tickets yet.
-              </Typography>
+            
+            {loading ? (
+              <Box display="flex" justifyContent="center" my={4}>
+                <CircularProgress />
+              </Box>
             ) : (
               <Paper sx={{ p: 2 }}>
-                {tickets.map((ticket) => (
-                  <Box key={ticket._id || ticket.Ticket_ID} mb={2} p={2} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                    <Box display="flex" justifyContent="space-between" alignItems="center">
-                      <Typography variant="subtitle1">
-                        {ticket.event?.title || ticket.Event_Title || 'Unknown Event'}
-                      </Typography>
-                      <Chip 
-                        label={ticket.status || 'Pending'} 
-                        color={ticket.status === 'Confirmed' ? 'success' : 'warning'} 
-                      />
+                {Array.isArray(tickets) && tickets.length > 0 ? (
+                  tickets.map((ticket) => (
+                    <Box 
+                      key={ticket._id || ticket.Ticket_ID} 
+                      mb={2} 
+                      p={2} 
+                      sx={{ 
+                        border: '1px solid', 
+                        borderColor: 'divider', 
+                        borderRadius: 1,
+                        '&:hover': {
+                          backgroundColor: 'action.hover'
+                        }
+                      }}
+                    >
+                      <Box display="flex" justifyContent="space-between" alignItems="center">
+                        <Typography variant="subtitle1" fontWeight="medium">
+                          {ticket.event?.title || ticket.Event_Name || 'Unknown Event'}
+                        </Typography>
+                        <Chip 
+                          label={ticket.status || ticket.Status || 'Pending'} 
+                          color={
+                            (ticket.status || ticket.Status) === 'Confirmed' ? 'success' : 
+                            (ticket.status || ticket.Status) === 'Cancelled' ? 'error' : 'warning'
+                          } 
+                          size="small"
+                        />
+                      </Box>
+                      
+                      <Box display="flex" justifyContent="space-between" mt={1.5}>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Date:</strong> {new Date(ticket.Purchase_Date || ticket.purchaseDate).toLocaleDateString()}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Qty:</strong> {ticket.Quantity || ticket.quantity}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Total:</strong> ${ticket.Total_Price || ticket.totalPrice}
+                        </Typography>
+                      </Box>
+                      
+                      <Box display="flex" justifyContent="flex-end" mt={1.5}>
+                        <Button 
+                          size="small" 
+                          sx={{ mr: 1 }}
+                          onClick={() => navigate(`/ticket/${ticket._id || ticket.Ticket_ID}`)}
+                        >
+                          View Details
+                        </Button>
+                        <Button 
+                          size="small" 
+                          variant="outlined"
+                          color="error"
+                          disabled={(ticket.status || ticket.Status) === 'Cancelled'}
+                        >
+                          Cancel Ticket
+                        </Button>
+                      </Box>
                     </Box>
-                    <Box display="flex" justifyContent="space-between" mt={1}>
-                      <Typography variant="body2">
-                        Purchased: {formatDate(ticket.purchaseDate || ticket.Purchase_Date)}
-                      </Typography>
-                      <Typography variant="body2">
-                        Qty: {ticket.quantity || ticket.Quantity || 1}
-                      </Typography>
-                      <Typography variant="body2">
-                        Total: ${ticket.total || ticket.Total_Amount || '0'}
-                      </Typography>
-                    </Box>
-                    <Box display="flex" justifyContent="flex-end" mt={1}>
-                      <Button 
-                        size="small" 
-                        sx={{ mr: 1 }}
-                        onClick={() => navigate(`/ticket/${ticket._id || ticket.Ticket_ID}`)}
-                      >
-                        View Details
-                      </Button>
-                      <Button size="small" variant="outlined">
-                        Download
-                      </Button>
-                    </Box>
+                  ))
+                ) : (
+                  <Box textAlign="center" py={4}>
+                    <Typography variant="body1" color="text.secondary" mb={2}>
+                      You haven't purchased any tickets yet.
+                    </Typography>
+                    <Button 
+                      variant="contained"
+                      onClick={() => setActiveTab(0)}
+                      startIcon={<CalendarToday />}
+                    >
+                      Browse Events
+                    </Button>
                   </Box>
-                ))}
+                )}
               </Paper>
             )}
           </Box>
         )}
-
         {activeTab === 2 && (
           <Box>
             <Typography variant="h6" gutterBottom>
