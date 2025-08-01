@@ -1,52 +1,126 @@
+const db = require('../db');
 const ticketsModel = require("../models/ticketsModel.js");
 
 module.exports = {
   purchaseTicket: (req, res) => {
     const { userID, eventID, numberOfTickets, paymentMethod, amount } = req.body;
 
-    ticketsModel.createBooking(userID, eventID, (bookingErr, bookingResults) => {
-      if (bookingErr) {
-        console.error("Error purchasing ticket:", bookingErr);
+    db.beginTransaction((err) => {
+      if (err) {
+        console.error("Transaction Error:", err);
         return res.status(500).json({ error: "Internal Server Error" });
       }
 
-      const bookingID = bookingResults.insertId;
+      db.query(
+        "INSERT INTO Bookings (User_ID, Event_ID, Booking_Date) VALUES (?, ?, CURDATE())",
+        [userID, eventID],
+        (err, bookingResult) => {
+          if (err) return db.rollback(() => res.status(500).json({ error: "Booking Error" }));
 
-      ticketsModel.createTickets(eventID, numberOfTickets, (ticketErr, ticketIDs) => {
-        if (ticketErr) {
-          console.error("Error creating tickets:", ticketErr);
-          return res.status(500).json({ error: "Internal Server Error" });
-        }
+          const bookingID = bookingResult.insertId;
 
-        ticketsModel.createBookingDetails(bookingID, ticketIDs, (detailsErr) => {
-          if (detailsErr) {
-            console.error("Error creating booking details:", detailsErr);
-            return res.status(500).json({ error: "Internal Server Error" });
-          }
+          db.query(
+            "INSERT INTO Tickets (Event_ID, User_ID, Quantity, Total_Price) VALUES (?, ?, ?, ?)",
+            [eventID, userID, numberOfTickets, amount],
+            (err, ticketResult) => {
+              if (err) return db.rollback(() => res.status(500).json({ error: "Ticket Error" }));
 
-          ticketsModel.updateAvailableTickets(eventID, numberOfTickets, (updateErr) => {
-              if (updateErr) {
-                console.error("Error updating available tickets:", updateErr);
-                return res.status(500).json({ error: "Internal Server Error" });
-              }
+              const ticketID = ticketResult.insertId;
 
-              ticketsModel.createPayment(bookingID, paymentMethod, amount, (paymentErr) => {
-                if (paymentErr) {
-                  console.error("Error creating payment entry:", paymentErr);
-                  return res
-                    .status(500).json({ error: "Internal Server Error" });
+              db.query(
+                "INSERT INTO BookingDetails (Booking_ID, Ticket_ID) VALUES (?, ?)",
+                [bookingID, ticketID],
+                (err) => {
+                  if (err) return db.rollback(() => res.status(500).json({ error: "BookingDetails Error" }));
+
+                  db.query(
+                    "UPDATE Events SET Available_Tickets = Available_Tickets - ? WHERE Event_ID = ?",
+                    [numberOfTickets, eventID],
+                    (err) => {
+                      if (err) return db.rollback(() => res.status(500).json({ error: "Update Event Error" }));
+
+                      db.query(
+                        `INSERT INTO Payments (
+                          Booking_ID, 
+                          Payment_Method, 
+                          Amount, 
+                          Payment_Status,
+                          Verification_Status
+                        ) VALUES (?, ?, ?, ?, ?)`,
+                        [bookingID, paymentMethod, amount, "Success", "Pending"],
+                        (err) => {
+                          if (err) return db.rollback(() => res.status(500).json({ error: "Payment Error" }));
+
+                          db.commit((err) => {
+                            if (err) return db.rollback(() => res.status(500).json({ error: "Commit Error" }));
+
+                            res.status(200).json({
+                              message: "Ticket purchase successful. Payment pending verification.",
+                              bookingID,
+                              ticketID
+                            });
+                          });
+                        }
+                      );
+                    }
+                  );
                 }
-
-                return res
-                  .status(200).json({ message: "Ticket purchased successfully" });
-              });
+              );
             }
           );
-        });
-      });
+        }
+      );
     });
   },
 
+  verifyPayment: async (req, res) => {
+    const { paymentID } = req.params;
+    const { status, notes } = req.body;
+    const adminID = req.user.id; // Assuming admin is authenticated
+
+    try {
+      await db.query(
+        `UPDATE Payments 
+        SET 
+          Verification_Status = ?,
+          Verification_Date = NOW(),
+          Verified_By = ?,
+          Verification_Notes = ?
+        WHERE Payment_ID = ?`,
+        [status, adminID, notes, paymentID]
+      );
+
+      res.status(200).json({ message: "Payment verification updated" });
+    } catch (error) {
+      console.error("Error verifying payment:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  getAllPayments: async (req, res) => {
+    try {
+      const [payments] = await db.query(`
+        SELECT 
+          p.*,
+          b.User_ID,
+          u.Name AS User_Name,
+          u.Email AS User_Email,
+          e.Event_Name,
+          e.Event_ID
+        FROM Payments p
+        JOIN Bookings b ON p.Booking_ID = b.Booking_ID
+        JOIN Users u ON b.User_ID = u.User_ID
+        JOIN Events e ON b.Event_ID = e.Event_ID
+        ORDER BY p.Payment_Date DESC
+      `);
+
+      res.status(200).json({ payments });
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+  
   getUserTickets: (req, res) => {
     const { userId } = req.params;
 

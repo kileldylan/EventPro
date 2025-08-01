@@ -22,7 +22,8 @@ import {
   Menu as MenuIcon,
   People,
   Receipt,
-  Settings
+  Settings,
+  ConfirmationNumber
 } from '@mui/icons-material';
 import { Link, useNavigate } from "react-router-dom";
 import { useLogout } from "../hooks/useLogout";
@@ -70,13 +71,9 @@ const Navbar = () => {
   const adminLinks = [
     { path: "/events", label: "Events", icon: <CalendarMonth /> },
     { path: "/venues", label: "Venues", icon: <LocationCity /> },
-    { path: "/participants", label: "Participants", icon: <People /> },
-    { path: "/logs", label: "Activity Log", icon: <Receipt /> }
   ];
 
   const userLinks = [
-    { path: "/events", label: "Events", icon: <CalendarMonth /> },
-    { path: "/venues", label: "Venues", icon: <LocationCity /> },
     { path: "/tickets", label: "My Tickets", icon: <Receipt /> },
     { path: "/book_tickets", label: "Book Tickets", icon: <Receipt /> }
   ];

@@ -91,25 +91,6 @@ const UserDashboard = () => {
     setActiveTab(newValue);
   };
 
-  const handlePurchaseTicket = async (eventId) => {
-    try {
-      setLoading(true);
-      await axios.post(`${backendUrl}/tickets/purchaseTicket`, {
-        userId,
-        eventId,
-        quantity: 1
-      });
-      setSuccess('Ticket purchased successfully!');
-      // Refresh tickets
-      const response = await axios.get(`${backendUrl}/tickets/getTickets/${userId}`);
-      setTickets(response.data);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to purchase ticket');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleLogout = () => {
     localStorage.removeItem('user');
     navigate('/login');
@@ -150,16 +131,6 @@ const UserDashboard = () => {
           >
             My Tickets
           </Button>
-          {userRole === 1 && (
-            <Button
-              fullWidth
-              startIcon={<LocationOn />}
-              sx={{ justifyContent: 'flex-start', mb: 1 }}
-              onClick={() => navigate('/user_venues')}
-            >
-              Manage Venues
-            </Button>
-          )}
           <Button
             fullWidth
             startIcon={<Logout />}
@@ -218,46 +189,50 @@ const UserDashboard = () => {
             <Grid container spacing={3}>
               {events.map((event) => (
                 <Grid item xs={12} sm={6} md={4} key={event._id || event.Event_ID}>
-                  <EventCard>
-                    <CardMedia
-                      component="img"
-                      height="140"
-                      image={event.image || '/images/event-placeholder.jpg'}
-                      alt={event.title || 'Event'}
+              <EventCard onClick={() => navigate(`/payment/${event._id || event.Event_ID}`)}>
+                <CardContent>
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Chip 
+                      label={event.category || event.Event_Category || 'General'} 
+                      size="small" 
                     />
-                    <CardContent>
-                      <Box display="flex" justifyContent="space-between" mb={1}>
-                        <Chip label={event.category || 'General'} size="small" />
-                        <Typography variant="subtitle1">
-                          ${event.price || '0'}
-                        </Typography>
-                      </Box>
-                      <Typography gutterBottom variant="h6">
-                        {event.title || 'Untitled Event'}
-                      </Typography>
-                      <Box display="flex" alignItems="center" mb={1}>
-                        <CalendarToday fontSize="small" color="action" sx={{ mr: 1 }} />
-                        <Typography variant="body2" color="text.secondary">
-                          {formatDate(event.date || event.Event_Date)}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center">
-                        <LocationOn fontSize="small" color="action" sx={{ mr: 1 }} />
-                        <Typography variant="body2" color="text.secondary">
-                          {event.venue?.name || event.Venue_Name || 'Venue not specified'}
-                        </Typography>
-                      </Box>
-                      <Button
-                        fullWidth
-                        variant="contained"
-                        sx={{ mt: 2 }}
-                        disabled={!event.available || loading}
-                        onClick={() => handlePurchaseTicket(event._id || event.Event_ID)}
-                      >
-                        {event.available ? 'Get Tickets' : 'Sold Out'}
-                      </Button>
-                    </CardContent>
-                  </EventCard>
+                    <Typography variant="subtitle1">
+                      Ksh {event.Ticket_Price || '0'}
+                    </Typography>
+                  </Box>
+                  <Typography gutterBottom variant="h6">
+                    {event.Event_Name || 'Untitled Event'}
+                  </Typography>
+                  <Box display="flex" alignItems="center" mb={1}>
+                    <CalendarToday fontSize="small" color="action" sx={{ mr: 1 }} />
+                    <Typography variant="body2" color="text.secondary">
+                      {formatDate(event.Event_Date)}
+                      {event.Event_Start_Time && ` • ${event.Event_Start_Time}`}
+                      {event.Event_End_Time && ` - ${event.Event_End_Time}`}
+                    </Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <ConfirmationNumber fontSize="small" color="action" sx={{ mr: 1 }} />
+                    <Typography variant="body2" color="text.secondary">
+                      {event.Available_Tickets !== undefined 
+                        ? `${event.Available_Tickets} tickets available` 
+                        : 'Ticket availability not specified'}
+                    </Typography>
+                  </Box>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    disabled={event.Available_Tickets === 0 || loading}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/payment/${event._id || event.Event_ID}`);
+                    }}
+                    sx={{ mt: 1 }}
+                  >
+                    {event.Available_Tickets > 0 ? 'Get Tickets' : 'Sold Out'}
+                  </Button>
+                </CardContent>
+              </EventCard>
                 </Grid>
               ))}
             </Grid>
@@ -313,7 +288,7 @@ const UserDashboard = () => {
                           <strong>Qty:</strong> {ticket.Quantity || ticket.quantity}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          <strong>Total:</strong> ${ticket.Total_Price || ticket.totalPrice}
+                          <strong>Total:</strong> Ksh{ticket.Total_Price || ticket.totalPrice}
                         </Typography>
                       </Box>
                       

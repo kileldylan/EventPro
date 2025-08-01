@@ -116,12 +116,9 @@ const Dashboard = () => {
             <Typography variant="h6" gutterBottom>Quick Actions</Typography>
             <Grid container spacing={2}>
               {[
-                { icon: <FileCheck />, text: "Verify Payments", to: "/verify", color: "primary" },
+                { icon: <FileCheck />, text: "Verify Payments", to: "/payment_verification", color: "primary" },
                 { icon: <LocateIcon />, text: "Venues", to: "/venues", color: "success" },
-                { icon: <Scan />, text: "Scan QR Codes", to: "/scanner", color: "secondary" },
                 { icon: <Users />, text: "View All Participants", to: "/verify?tab=results", color: "warning" },
-                { icon: <Users />, text: "View Attendance", to: "/scanner?view=attendance", color: "info" },
-                { icon: <Users />, text: "View Unattended", to: "/unattended", color: "error" }
               ].map((action, index) => (
                 <Grid item xs={12} sm={6} key={index}>
                   <Button

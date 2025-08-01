@@ -55,21 +55,32 @@ const TicketBooking = ({ userId, onTicketPurchased }) => {
       setLoading(true);
       setError(null);
       
-      const { data: newTicket } = await axios.post(`${backendUrl}/events/purchaseTicket`, {
-        userId,
-        eventId: selectedEvent,
-        quantity
+      const selectedEventObj = events.find(e => e.Event_ID === selectedEvent);
+      if (!selectedEventObj) {
+        throw new Error('Selected event not found');
+      }
+
+      if (quantity > selectedEventObj.Available_Tickets) {
+        throw new Error('Not enough tickets available');
+      }
+
+      const response = await axios.post(`${backendUrl}/events/purchaseTicket`, {
+        userID: userId,
+        eventID: selectedEvent,
+        numberOfTickets: quantity,
+        paymentMethod: 'Online', // Default payment method
+        amount: quantity * selectedEventObj.Ticket_Price
       });
 
-      setSuccess(`Successfully booked ${quantity} ticket(s) for ${events.find(e => e._id === selectedEvent)?.title}`);
+      setSuccess(`Successfully booked ${quantity} ticket(s) for ${selectedEventObj.Event_Name}`);
       setSelectedEvent('');
       setQuantity(1);
       
       if (onTicketPurchased) {
-        onTicketPurchased(newTicket);
+        onTicketPurchased(response.data);
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to purchase ticket. Please try again.');
+      setError(err.response?.data?.error || err.message || 'Failed to purchase ticket. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -96,18 +107,19 @@ const TicketBooking = ({ userId, onTicketPurchased }) => {
           )}
 
           <FormControl fullWidth sx={{ mb: 3 }} disabled={fetchingEvents || events.length === 0}>
-            <InputLabel>
+            <InputLabel id="event-select-label">
               {fetchingEvents ? 'Loading events...' : events.length === 0 ? 'No available events' : 'Select Event'}
             </InputLabel>
             <Select
+              labelId="event-select-label"
               value={selectedEvent}
               onChange={(e) => setSelectedEvent(e.target.value)}
               label={fetchingEvents ? 'Loading events...' : events.length === 0 ? 'No available events' : 'Select Event'}
               startAdornment={<Event sx={{ mr: 1 }} />}
             >
               {events.map((event) => (
-                <MenuItem key={event._id} value={event._id}>
-                  {event.title} - ${event.price} (Available: {event.availableTickets || event.capacity})
+                <MenuItem key={event.Event_ID} value={event.Event_ID}>
+                  {event.Event_Name} - Ksh {event.Ticket_Price} (Available: {event.Available_Tickets})
                 </MenuItem>
               ))}
             </Select>
@@ -119,15 +131,18 @@ const TicketBooking = ({ userId, onTicketPurchased }) => {
             type="number"
             value={quantity}
             onChange={(e) => {
-              const value = Math.max(1, parseInt(e.target.value || 1));
-              const selected = events.find(e => e._id === selectedEvent);
-              const max = selected?.availableTickets || selected?.capacity || 1;
-              setQuantity(Math.min(value, max));
+              const value = parseInt(e.target.value) || 1;
+              const selectedEventObj = events.find(e => e.Event_ID === selectedEvent);
+              const maxAvailable = selectedEventObj?.Available_Tickets || 1;
+              
+              // Ensure value is between 1 and max available
+              const clampedValue = Math.max(1, Math.min(value, maxAvailable));
+              setQuantity(clampedValue);
             }}
             sx={{ mb: 3 }}
             inputProps={{ 
               min: 1,
-              max: events.find(e => e._id === selectedEvent)?.availableTickets || undefined
+              max: events.find(e => e.Event_ID === selectedEvent)?.Available_Tickets || undefined
             }}
             disabled={!selectedEvent || events.length === 0}
           />

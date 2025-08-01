@@ -78,5 +78,64 @@ module.exports = {
       userData.contactInfo,
       userId
     ], callback);
+  },
+
+  createPayment: (bookingID, paymentMethod, amount, callback) => {
+    const query = `
+      INSERT INTO Payments (
+        Booking_ID, 
+        Payment_Method, 
+        Amount, 
+        Payment_Status,
+        Verification_Status
+      ) VALUES (?, ?, ?, ?, ?)`;
+    db.query(
+      query, 
+      [bookingID, paymentMethod, amount, "Success", "Pending"], 
+      callback
+    );
+  },
+
+  verifyPayment: (paymentID, adminID, status, notes, callback) => {
+    const query = `
+      UPDATE Payments 
+      SET 
+        Verification_Status = ?,
+        Verification_Date = NOW(),
+        Verified_By = ?,
+        Verification_Notes = ?
+      WHERE Payment_ID = ?`;
+    db.query(query, [status, adminID, notes, paymentID], callback);
+  },
+
+  getAllPayments: (callback) => {
+    const query = `
+      SELECT 
+        p.*,
+        b.User_ID,
+        u.Name AS User_Name,
+        u.Email AS User_Email,
+        e.Event_Name,
+        e.Event_ID
+      FROM Payments p
+      JOIN Bookings b ON p.Booking_ID = b.Booking_ID
+      JOIN Users u ON b.User_ID = u.User_ID
+      JOIN Events e ON b.Event_ID = e.Event_ID
+      ORDER BY p.Payment_Date DESC`;
+    db.query(query, callback);
+  },
+
+  getUserPayments: (userID, callback) => {
+    const query = `
+      SELECT 
+        p.*,
+        e.Event_Name,
+        e.Event_Date
+      FROM Payments p
+      JOIN Bookings b ON p.Booking_ID = b.Booking_ID
+      JOIN Events e ON b.Event_ID = e.Event_ID
+      WHERE b.User_ID = ?
+      ORDER BY p.Payment_Date DESC`;
+    db.query(query, [userID], callback);
   }
 };

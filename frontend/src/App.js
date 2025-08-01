@@ -20,6 +20,9 @@ import ActivityLog from "./pages/Activity_Log";
 import Tickets from "./pages/Tickets";
 import UserDashboard from "./pages/UserDashboard";
 import TicketBooking from "./pages/TicketBooking";
+import UserPayments from "./pages/UserPayments";
+import PaymentVerification from "./pages/PaymentVerification";
+import PaymentPage from "./pages/PaymentsPage";
 
 // Role-based route wrapper
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -85,6 +88,21 @@ function App() {
           <Route path="/book_tickets" element={
             <ProtectedRoute>
               <TicketBooking />
+            </ProtectedRoute>
+          } />
+          <Route path="/user_payments" element={
+            <ProtectedRoute>
+              <UserPayments />
+            </ProtectedRoute>
+          } />
+          <Route path="/payment/:eventId" element={
+            <ProtectedRoute>
+              <PaymentPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/payment_verification" element={
+            <ProtectedRoute>
+              <PaymentVerification />
             </ProtectedRoute>
           } />
           <Route path="/profile" element={

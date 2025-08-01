@@ -1,4 +1,4 @@
-const db = require("../db");
+const eventsModel = require("../models/ticketsModel");
 
 module.exports = {
   createBooking: (userID, eventID, callback) => {
@@ -7,21 +7,21 @@ module.exports = {
     db.query(query, [userID, eventID], callback);
   },
 
-  createTickets: (eventID, numberOfTickets, callback) => {
-    const query = "INSERT INTO Tickets (Event_ID) VALUES (?)";
-    const ticketIDs = [];
-    for (let i = 0; i < numberOfTickets; i++) {
-      db.query(query, [eventID], (err, results) => {
-        if (err) {
-          return callback(err);
-        }
-        ticketIDs.push(results.insertId);
-        if (ticketIDs.length == parseInt(numberOfTickets)) {
-          callback(null, ticketIDs);
-        }
-      });
-    }
-  },
+createTickets: (userID, eventID, quantity, callback) => {
+    const ticketPriceQuery = "SELECT Ticket_Price FROM Events WHERE Event_ID = ?";
+    db.query(ticketPriceQuery, [eventID], (err, results) => {
+        if (err) return callback(err);
+        
+        const ticketPrice = results[0].Ticket_Price;
+        const totalPrice = ticketPrice * quantity;
+        
+        db.query(
+            "INSERT INTO Tickets (Event_ID, User_ID, Quantity, Total_Price) VALUES (?, ?, ?, ?)",
+            [eventID, userID, quantity, totalPrice],
+            callback
+        );
+    });
+},
 
   createBookingDetails: async (bookingID, ticketIDs, callback) => {
     const query =
@@ -145,8 +145,120 @@ module.exports = {
         });
       });
     });
-  }
+  },
   
-  
+  purchaseTicket: async (req, res) => {
+    const { userID, eventID, numberOfTickets, paymentMethod, amount } = req.body;
+
+    try {
+      // Start transaction
+      await db.query('START TRANSACTION');
+
+      // 1. Create booking
+      const [booking] = await db.query(
+        "INSERT INTO Bookings (User_ID, Event_ID, Booking_Date) VALUES (?, ?, CURDATE())",
+        [userID, eventID]
+      );
+
+      const bookingID = booking.insertId;
+
+      // 2. Create tickets
+      const ticketIDs = [];
+      for (let i = 0; i < numberOfTickets; i++) {
+        const [ticket] = await db.query(
+          "INSERT INTO Tickets (Event_ID) VALUES (?)",
+          [eventID]
+        );
+        ticketIDs.push(ticket.insertId);
+      }
+
+      // 3. Create booking details
+      for (const ticketID of ticketIDs) {
+        await db.query(
+          "INSERT INTO BookingDetails (Booking_ID, Ticket_ID) VALUES (?, ?)",
+          [bookingID, ticketID]
+        );
+      }
+
+      // 4. Update available tickets
+      await db.query(
+        "UPDATE Events SET Available_Tickets = Available_Tickets - ? WHERE Event_ID = ?",
+        [numberOfTickets, eventID]
+      );
+
+      // 5. Create payment (with pending status)
+      await db.query(
+        `INSERT INTO Payments (
+          Booking_ID, 
+          Payment_Method, 
+          Amount, 
+          Payment_Status,
+          Verification_Status
+        ) VALUES (?, ?, ?, ?, ?)`,
+        [bookingID, paymentMethod, amount, "Success", "Pending"]
+      );
+
+      // Commit transaction
+      await db.query('COMMIT');
+
+      res.status(200).json({ 
+        message: "Ticket purchase successful. Payment pending verification." 
+      });
+    } catch (error) {
+      // Rollback on error
+      await db.query('ROLLBACK');
+      console.error("Error purchasing ticket:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  verifyPayment: async (req, res) => {
+    const { paymentID } = req.params;
+    const { status, notes } = req.body;
+    const adminID = req.user.id; // Assuming admin is authenticated
+
+    try {
+      await db.query(
+        `UPDATE Payments 
+        SET 
+          Verification_Status = ?,
+          Verification_Date = NOW(),
+          Verified_By = ?,
+          Verification_Notes = ?
+        WHERE Payment_ID = ?`,
+        [status, adminID, notes, paymentID]
+      );
+
+      res.status(200).json({ message: "Payment verification updated" });
+    } catch (error) {
+      console.error("Error verifying payment:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  getAllPayments: async (req, res) => {
+    try {
+      const [payments] = await db.query(`
+        SELECT 
+          p.*,
+          b.User_ID,
+          u.Name AS User_Name,
+          u.Email AS User_Email,
+          e.Event_Name,
+          e.Event_ID
+        FROM Payments p
+        JOIN Bookings b ON p.Booking_ID = b.Booking_ID
+        JOIN Users u ON b.User_ID = u.User_ID
+        JOIN Events e ON b.Event_ID = e.Event_ID
+        ORDER BY p.Payment_Date DESC
+      `);
+
+      res.status(200).json({ payments });
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
   
 };
