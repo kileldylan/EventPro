@@ -8,7 +8,7 @@ const cors = require('cors');
 const db = require('./db');
 const userRoutes = require('./routes/user')
 const eventsRoutes = require('./routes/events')
-const paymentsroutes = require('./routes/payments_route')
+const paymentsroutes = require('./routes/payments')
 
 const app = express();
 const port = 5000;

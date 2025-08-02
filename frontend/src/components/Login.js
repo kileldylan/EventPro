@@ -13,23 +13,21 @@ const Login = () => {
   const { login, isLoading, error } = useLogin();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
 
   try {
-    const user = await login(email, password, isAdminLogin ? 'Admin' : 'User');
+    const { user } = await login(email, password, isAdminLogin ? 'Admin' : 'User');
     
-    // Debugging - check what's actually being returned
-    console.log('User data from login:', user);
+    console.log('Login successful - User:', user);
 
-    // Proper role checking
-    if (user.role === 1 || user.Role_ID === 1 || user.roleName === 'Admin' || user.Role_Name === 'Admin') {
-      navigate('/admin_dashboard');
-    } else {
-      navigate('/user_dashboard');
-    }
+    // Role check using consistent property names
+    const isAdmin = user.role === 1 || user.Role_ID === 1;
+    navigate(isAdmin ? '/admin_dashboard' : '/user_dashboard');
+    
   } catch (err) {
     console.error('Login error:', err);
+    // Error is already handled by useLogin hook
   }
 };
 

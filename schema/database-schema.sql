@@ -53,7 +53,13 @@ CREATE TABLE Events (
 CREATE TABLE Tickets (
     Ticket_ID INT AUTO_INCREMENT PRIMARY KEY,
     Event_ID INT,
-    FOREIGN KEY (Event_ID) REFERENCES Events(Event_ID)
+    User_ID INT NOT NULL,
+    Purchase_Date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Quantity INT NOT NULL,
+    Total_Price DECIMAL(10,2) NOT NULL,
+    Status ENUM('Pending', 'Confirmed', 'Cancelled') NOT NULL DEFAULT 'Pending',
+    FOREIGN KEY (Event_ID) REFERENCES Events(Event_ID),
+    FOREIGN KEY (User_ID) REFERENCES Users(User_ID) ON DELETE CASCADE
 );
 
 CREATE TABLE Bookings (

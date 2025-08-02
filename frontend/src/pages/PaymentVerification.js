@@ -1,172 +1,173 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  Box, Button, Card, Chip, Container,
-  Paper, Stack, Table, TableBody, TableCell, TableContainer, 
-  TableHead, TableRow, Typography, CircularProgress
+  Button, Card, Chip, Container, 
+  Paper, Stack, Typography, CircularProgress
 } from '@mui/material';
-import { CheckCircle, Cancel, Refresh } from '@mui/icons-material';
+import { Refresh, Search } from '@mui/icons-material';
+import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
 
 const PaymentVerification = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
   const backendUrl = 'http://localhost:5000/api';
 
-  const getAuthToken = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      window.location.href = '/login';
-      return null;
-    }
-    return token;
-  };
-
-  const fetchPayments = async () => {
-    try {
-      setLoading(true);
-      const token = getAuthToken();
-      if (!token) return;
-
-      const response = await axios.get(`${backendUrl}/payments/pending`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.status === 200) {
-        setPayments(response.data.payments || []);
-      } else {
-        throw new Error("Unexpected response");
-      }
-    } catch (error) {
-      console.error('Error fetching payments:', error);
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerify = async (paymentId, status) => {
-    try {
-      setLoading(true);
-      const token = getAuthToken();
-      if (!token) return;
-
-      await axios.put(
-        `${backendUrl}/payments/verify/${paymentId}`,
-        { status },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      fetchPayments();
-    } catch (error) {
-      console.error('Error verifying payment:', error);
-      if (error.response?.status === 403) {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchPayments = async () => {
+  try {
+    setLoading(true);
+    console.log('Fetching payments from:', `${backendUrl}/payments/getPayments`);
+    
+    const response = await axios.get(`${backendUrl}/payments/getPayments`);
+    console.log('API Response:', response);
+    
+    // Check if response.data exists and has payments array
+    const paymentsData = response.data?.payments || response.data || [];
+    console.log('Parsed payments data:', paymentsData);
+    
+    setPayments(paymentsData);
+  } catch (error) {
+    console.error('Full error:', error);
+    console.error('Error response:', error.response);
+    setPayments([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchPayments();
   }, []);
 
+  const filteredPayments = payments.filter(payment => {
+    const search = searchTerm.toLowerCase();
+    return (
+      (payment.User_Name?.toLowerCase() || '').includes(search) ||
+      (payment.Event_Name?.toLowerCase() || '').includes(search) ||
+      (payment.Payment_ID?.toString() || '').includes(search)
+    );
+  });
+
+  const handleRefund = async (paymentId) => {
+    try {
+      setLoading(true);
+      await axios.post(`${backendUrl}/payments/refundPayment/${paymentId}`);
+      await fetchPayments();
+    } catch (error) {
+      console.error('Error refunding payment:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const columns = [
+    { field: 'Payment_ID', headerName: 'ID', width: 70 },
+    { field: 'User_Name', headerName: 'User', width: 150 },
+    { field: 'Event_Name', headerName: 'Event', width: 200 },
+    { field: 'Payment_Method', headerName: 'Method', width: 120 },
+    {
+      field: 'Amount',
+      headerName: 'Amount',
+      width: 120,
+      valueFormatter: (params) => `Ksh ${(params.value || 0).toFixed(2)}`
+    },
+    { 
+      field: 'Payment_Date', 
+      headerName: 'Date', 
+      width: 120,
+      valueFormatter: (params) => new Date(params.value).toLocaleDateString()
+    },
+    {
+      field: 'Payment_Status',
+      headerName: 'Payment Status',
+      width: 150,
+      renderCell: (params) => (
+        <Chip
+          label={params.value}
+          color={params.value === 'Success' ? 'success' : 'error'}
+        />
+      )
+    },
+    {
+      field: 'Verification_Status',
+      headerName: 'Verification',
+      width: 150,
+      renderCell: (params) => (
+        <Chip
+          label={params.value}
+          color={params.value === 'Verified' ? 'success' : 'warning'}
+        />
+      )
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 150,
+      renderCell: (params) => (
+        params.row.Payment_Status !== 'Refunded' && (
+          <Button
+            variant="outlined"
+            color="error"
+            size="small"
+            onClick={() => handleRefund(params.row.Payment_ID)}
+            disabled={params.row.Verification_Status !== 'Verified'}
+          >
+            Refund
+          </Button>
+        )
+      )
+    }
+  ];
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Card elevation={3} sx={{ p: 3 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h5">Payment Verification</Typography>
-          <Button 
-            variant="outlined" 
-            startIcon={<Refresh />}
-            onClick={fetchPayments}
-            disabled={loading}
-          >
-            Refresh
-          </Button>
+          <Typography variant="h6" component="h2">
+            Payment Verification
+          </Typography>
+          <Stack direction="row" spacing={2}>
+            <Paper
+              component="form"
+              sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 300 }}
+              elevation={1}
+            >
+              <Search sx={{ color: 'action.active', mr: 1 }} />
+              <input
+                placeholder="Search payments..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  border: 'none',
+                  outline: 'none',
+                  flex: 1,
+                  padding: '8px 0',
+                }}
+              />
+            </Paper>
+            <Button
+              variant="outlined"
+              startIcon={<Refresh />}
+              onClick={fetchPayments}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={20} /> : 'Refresh'}
+            </Button>
+          </Stack>
         </Stack>
 
-        {loading ? (
-          <Box display="flex" justifyContent="center" py={4}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Payment ID</TableCell>
-                  <TableCell>User</TableCell>
-                  <TableCell>Event</TableCell>
-                  <TableCell>Amount</TableCell>
-                  <TableCell>Method</TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {payments.length > 0 ? (
-                  payments.map((payment) => (
-                    <TableRow key={payment.Payment_ID}>
-                      <TableCell>#{payment.Payment_ID}</TableCell>
-                      <TableCell>{payment.User_Name}</TableCell>
-                      <TableCell>{payment.Event_Name}</TableCell>
-                      <TableCell>${payment.Amount}</TableCell>
-                      <TableCell>
-                        <Chip label={payment.Payment_Method} variant="outlined" />
-                      </TableCell>
-                      <TableCell>
-                        {new Date(payment.Payment_Date).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Box display="flex" gap={1}>
-                          <Button
-                            variant="outlined"
-                            color="success"
-                            size="small"
-                            startIcon={<CheckCircle />}
-                            onClick={() => handleVerify(payment.Payment_ID, 'Verified')}
-                          >
-                            Verify
-                          </Button>
-                          <Button
-                            variant="outlined"
-                            color="error"
-                            size="small"
-                            startIcon={<Cancel />}
-                            onClick={() => handleVerify(payment.Payment_ID, 'Rejected')}
-                          >
-                            Reject
-                          </Button>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      <Typography variant="body1" py={2}>
-                        No pending payments to verify
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
+        <div style={{ height: 600, width: '100%' }}>
+          <DataGrid
+            rows={filteredPayments}
+            columns={columns}
+            loading={loading}
+            pageSize={10}
+            rowsPerPageOptions={[10, 25, 50]}
+            getRowId={(row) => row.Payment_ID}
+            disableSelectionOnClick
+          />
+        </div>
       </Card>
     </Container>
   );
