@@ -23,6 +23,7 @@ import TicketBooking from "./pages/TicketBooking";
 import UserPayments from "./pages/UserPayments";
 import PaymentVerification from "./pages/PaymentVerification";
 import PaymentPage from "./pages/PaymentsPage";
+import UserTickets from "./pages/UserTickets";
 
 // Role-based route wrapper
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -93,6 +94,11 @@ function App() {
           <Route path="/user_payments" element={
             <ProtectedRoute>
               <UserPayments />
+            </ProtectedRoute>
+          } />
+          <Route path="/user_tickets" element={
+            <ProtectedRoute>
+              <UserTickets />
             </ProtectedRoute>
           } />
           <Route path="/payment/:eventId" element={

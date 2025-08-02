@@ -62,7 +62,7 @@ const Signup = () => {
         formData.role,
         formData.contactInfo
       );
-      navigate(formData.role === '1' ? '/admin_dashboard' : '/user_dashboard');
+      navigate(formData.role === '1' ? '/login' : '/login');
     } catch (err) {
       setError(err.message || "Signup failed. Please try again.");
     }

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { 
   Card, Container, 
-  Paper, Stack, Typography, CircularProgress, Chip
+  Button, Stack, Typography, CircularProgress, Chip
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import axios from 'axios';
+import { Refresh } from '@mui/icons-material';
 
 const UserTickets = ({ userId }) => {
   const [tickets, setTickets] = useState([]);
@@ -17,19 +18,33 @@ const UserTickets = ({ userId }) => {
       setLoading(true);
       const response = await axios.get(`${backendUrl}/events/getTickets/${userId}`);
       
-      const formattedTickets = response.data.map(ticket => ({
+      // Debugging: Log the full response
+      console.log('Full API response:', response);
+      
+      // Handle different response structures
+      const ticketsData = Array.isArray(response.data) 
+        ? response.data 
+        : response.data?.tickets || [];
+      
+      console.log('Processed tickets data:', ticketsData);
+
+      const formattedTickets = ticketsData.map(ticket => ({
         Ticket_ID: ticket.Ticket_ID,
-        Event_Name: ticket.Event?.Event_Name || 'Event Deleted',
-        Event_Date: ticket.Event?.Event_Date,
-        Purchase_Date: ticket.Purchase_Date,
+        Event_Name: ticket.Event_Name || 'Event Deleted',
+        Event_Date: ticket.Event_Date,
+        Purchase_Date: ticket.Purchase_Date || ticket.Booking_Date,
         Quantity: ticket.Quantity,
         Total_Price: ticket.Total_Price,
-        Status: ticket.Status
+        Status: ticket.Status || 'Pending'
       }));
 
       setTickets(formattedTickets);
     } catch (error) {
-      console.error('Error fetching tickets:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        config: error.config
+      });
       setTickets([]);
     } finally {
       setLoading(false);

@@ -1,264 +1,125 @@
-const eventsModel = require("../models/ticketsModel");
+const db = require('../db');
 
 module.exports = {
+  // Create a new booking
   createBooking: (userID, eventID, callback) => {
-    const query =
-      "INSERT INTO Bookings (User_ID, Event_ID, Booking_Date) VALUES (?, ?, CURDATE())";
+    const query = "INSERT INTO Bookings (User_ID, Event_ID, Booking_Date) VALUES (?, ?, CURDATE())";
     db.query(query, [userID, eventID], callback);
   },
 
-createTickets: (userID, eventID, quantity, callback) => {
+  createTickets: (userID, eventID, quantity, callback) => {
     const ticketPriceQuery = "SELECT Ticket_Price FROM Events WHERE Event_ID = ?";
     db.query(ticketPriceQuery, [eventID], (err, results) => {
-        if (err) return callback(err);
-        
-        const ticketPrice = results[0].Ticket_Price;
-        const totalPrice = ticketPrice * quantity;
-        
-        db.query(
-            "INSERT INTO Tickets (Event_ID, User_ID, Quantity, Total_Price) VALUES (?, ?, ?, ?)",
-            [eventID, userID, quantity, totalPrice],
-            callback
-        );
+      if (err) return callback(err);
+      
+      const ticketPrice = results[0]?.Ticket_Price || 0;
+      const totalPrice = ticketPrice * quantity;
+      
+      const query = "INSERT INTO Tickets (Event_ID, User_ID, Quantity, Total_Price, Status) VALUES (?, ?, ?, ?, ?)";
+      db.query(query, [eventID, userID, quantity, totalPrice, 'Pending'], callback);
     });
-},
-
-  createBookingDetails: async (bookingID, ticketIDs, callback) => {
-    const query =
-      "INSERT INTO BookingDetails (Booking_ID, Ticket_ID) VALUES (?, ?)";
-
-    try {
-      for (const ticketID of ticketIDs) {
-        await new Promise((resolve, reject) => {
-          db.query(query, [bookingID, ticketID], (err) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve();
-            }
-          });
-        });
-      }
-
-      callback(null);
-    } catch (err) {
-      callback(err);
-    }
+  },
+  // Create booking details
+  createBookingDetails: (bookingID, ticketID, callback) => {
+    const query = "INSERT INTO BookingDetails (Booking_ID, Ticket_ID) VALUES (?, ?)";
+    db.query(query, [bookingID, ticketID], callback);
   },
 
-  updateAvailableTickets: (eventID, numberOfTickets, callback) => {
-    const query =
-      "UPDATE Events SET Available_Tickets = Available_Tickets - ? WHERE Event_ID = ?";
-    db.query(query, [numberOfTickets, eventID], callback);
+  // Update available tickets
+  updateAvailableTickets: (eventID, quantity, callback) => {
+    const query = "UPDATE Events SET Available_Tickets = Available_Tickets - ? WHERE Event_ID = ?";
+    db.query(query, [quantity, eventID], callback);
   },
 
+  // Create payment record
   createPayment: (bookingID, paymentMethod, amount, callback) => {
-    const query =
-      "INSERT INTO Payments (Booking_ID, Payment_Method, Amount, Payment_Status) VALUES (?, ?, ?, ?)";
-    db.query(query, [bookingID, paymentMethod, amount, "Success"], callback);
+    const query = `
+      INSERT INTO Payments (
+        Booking_ID, 
+        Payment_Method, 
+        Amount, 
+        Payment_Status,
+        Verification_Status,
+        Payment_Date
+      ) VALUES (?, ?, ?, 'Success', 'Pending', NOW())
+    `;
+    db.query(query, [bookingID, paymentMethod, amount], callback);
   },
-
-  getUserTickets: (userId, callback) => {
+  // Get user tickets with all related information
+    getUserTickets: (userId, callback) => {
     const query = `
       SELECT
-        Tickets.Ticket_ID,
-        Events.Event_Name,
-        Events.Ticket_Price,
-        Events.Event_Date,
-        Events.Event_Start_Time,
-        Events.Event_End_Time,
-        Events.Organizer,
-        Venues.Venue_Name,
-        Venues.Street,
-        Venues.City,
-        Venues.District,
-        Venues.State,
-        Venues.Pincode,
-        Venues.Capacity,
-        Bookings.Booking_ID,
-        Bookings.Booking_Date,
-        Payments.Payment_Method,
-        Payments.Amount
-      FROM Tickets
-      JOIN BookingDetails ON Tickets.Ticket_ID = BookingDetails.Ticket_ID
-      JOIN Bookings ON BookingDetails.Booking_ID = Bookings.Booking_ID
-      JOIN Events ON Bookings.Event_ID = Events.Event_ID
-      JOIN Venues ON Events.Venue_ID = Venues.Venue_ID
-      LEFT JOIN Payments ON Bookings.Booking_ID = Payments.Booking_ID
-      WHERE Bookings.User_ID = ?
+        t.Ticket_ID,
+        e.Event_Name,
+        e.Event_Date,
+        e.Event_Start_Time,
+        e.Event_End_Time,
+        v.Venue_Name,
+        t.Quantity,
+        t.Total_Price,
+        t.Status,
+        p.Payment_Method,
+        p.Payment_Status,
+        p.Verification_Status,
+        b.Booking_Date AS Purchase_Date
+      FROM Tickets t
+      JOIN Bookings b ON t.User_ID = b.User_ID AND t.Event_ID = b.Event_ID
+      JOIN Events e ON t.Event_ID = e.Event_ID
+      JOIN Venues v ON e.Venue_ID = v.Venue_ID
+      LEFT JOIN Payments p ON b.Booking_ID = p.Booking_ID
+      WHERE t.User_ID = ?
+      ORDER BY b.Booking_Date DESC
     `;
-  
+    
     db.query(query, [userId], (err, results) => {
-      if (err) {
-        return callback(err);
-      }
-  
-      callback(null, results);
+      if (err) return callback(err);
+      
+      // Format dates for frontend
+      const formattedTickets = results.map(ticket => ({
+        ...ticket,
+        Event_Date: ticket.Event_Date ? new Date(ticket.Event_Date).toISOString().split('T')[0] : null,
+        Purchase_Date: ticket.Purchase_Date ? new Date(ticket.Purchase_Date).toISOString().split('T')[0] : null
+      }));
+      
+      callback(null, formattedTickets);
     });
   },
-
+  // Get statistics for admin dashboard
   getStatistics: (callback) => {
-    const ticketQuery = `
-      SELECT COUNT(DISTINCT Tickets.Ticket_ID) as totalTicketsSold
-      FROM Payments 
-      JOIN Bookings ON Payments.Booking_ID = Bookings.Booking_ID
-      JOIN Tickets ON Bookings.Event_ID = Tickets.Event_ID;
-    `;
-  
-    const revenueQuery = `SELECT SUM(Amount) as totalRevenue FROM Payments`;
-  
-    const eventWiseQuery = `
-      SELECT 
-        Events.Event_ID, 
-        Events.Event_Name, 
-        COUNT(Bookings.Booking_ID) as totalBookings,
-        COUNT(DISTINCT Tickets.Ticket_ID) as totalTicketsSold, 
-        SUM(Payments.Amount) as totalRevenue 
-      FROM Events 
-      LEFT JOIN Bookings ON Events.Event_ID = Bookings.Event_ID 
-      LEFT JOIN Payments ON Bookings.Booking_ID = Payments.Booking_ID 
-      LEFT JOIN Tickets ON Bookings.Event_ID = Tickets.Event_ID 
-      GROUP BY Events.Event_ID
-    `;
-  
-    db.query(ticketQuery, (err1, ticketStats) => {
-      if (err1) {
-        return callback(err1, null);
-      }
-  
-      db.query(revenueQuery, (err2, revenueStats) => {
-        if (err2) {
-          return callback(err2, null);
-        }
-  
-        db.query(eventWiseQuery, (err3, eventWiseStats) => {
-          if (err3) {
-            return callback(err3, null);
-          }
-  
-          const totalStats = {
-            totalTicketsSold: ticketStats[0].totalTicketsSold,
-            totalRevenue: revenueStats[0].totalRevenue,
-          };
-  
-          callback(null, { totalStats, eventWiseStats });
+    const queries = {
+      ticketStats: "SELECT COUNT(*) as totalTicketsSold FROM Tickets",
+      revenueStats: "SELECT SUM(Amount) as totalRevenue FROM Payments WHERE Verification_Status = 'Verified'",
+      eventStats: `
+        SELECT 
+          e.Event_ID, 
+          e.Event_Name, 
+          COUNT(t.Ticket_ID) as ticketsSold,
+          SUM(p.Amount) as revenue
+        FROM Events e
+        LEFT JOIN Tickets t ON e.Event_ID = t.Event_ID
+        LEFT JOIN Bookings b ON t.User_ID = b.User_ID
+        LEFT JOIN Payments p ON b.Booking_ID = p.Booking_ID
+        WHERE p.Verification_Status = 'Verified' OR p.Verification_Status IS NULL
+        GROUP BY e.Event_ID
+      `
+    };
+
+    db.query(queries.ticketStats, (err1, ticketStats) => {
+      if (err1) return callback(err1);
+      
+      db.query(queries.revenueStats, (err2, revenueStats) => {
+        if (err2) return callback(err2);
+        
+        db.query(queries.eventStats, (err3, eventStats) => {
+          if (err3) return callback(err3);
+          
+          callback(null, {
+            totalTickets: ticketStats[0].totalTicketsSold,
+            totalRevenue: revenueStats[0].totalRevenue || 0,
+            events: eventStats
+          });
         });
       });
     });
-  },
-  
-  purchaseTicket: async (req, res) => {
-    const { userID, eventID, numberOfTickets, paymentMethod, amount } = req.body;
-
-    try {
-      // Start transaction
-      await db.query('START TRANSACTION');
-
-      // 1. Create booking
-      const [booking] = await db.query(
-        "INSERT INTO Bookings (User_ID, Event_ID, Booking_Date) VALUES (?, ?, CURDATE())",
-        [userID, eventID]
-      );
-
-      const bookingID = booking.insertId;
-
-      // 2. Create tickets
-      const ticketIDs = [];
-      for (let i = 0; i < numberOfTickets; i++) {
-        const [ticket] = await db.query(
-          "INSERT INTO Tickets (Event_ID) VALUES (?)",
-          [eventID]
-        );
-        ticketIDs.push(ticket.insertId);
-      }
-
-      // 3. Create booking details
-      for (const ticketID of ticketIDs) {
-        await db.query(
-          "INSERT INTO BookingDetails (Booking_ID, Ticket_ID) VALUES (?, ?)",
-          [bookingID, ticketID]
-        );
-      }
-
-      // 4. Update available tickets
-      await db.query(
-        "UPDATE Events SET Available_Tickets = Available_Tickets - ? WHERE Event_ID = ?",
-        [numberOfTickets, eventID]
-      );
-
-      // 5. Create payment (with pending status)
-      await db.query(
-        `INSERT INTO Payments (
-          Booking_ID, 
-          Payment_Method, 
-          Amount, 
-          Payment_Status,
-          Verification_Status
-        ) VALUES (?, ?, ?, ?, ?)`,
-        [bookingID, paymentMethod, amount, "Success", "Pending"]
-      );
-
-      // Commit transaction
-      await db.query('COMMIT');
-
-      res.status(200).json({ 
-        message: "Ticket purchase successful. Payment pending verification." 
-      });
-    } catch (error) {
-      // Rollback on error
-      await db.query('ROLLBACK');
-      console.error("Error purchasing ticket:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
-
-  verifyPayment: async (req, res) => {
-    const { paymentID } = req.params;
-    const { status, notes } = req.body;
-    const adminID = req.user.id; // Assuming admin is authenticated
-
-    try {
-      await db.query(
-        `UPDATE Payments 
-        SET 
-          Verification_Status = ?,
-          Verification_Date = NOW(),
-          Verified_By = ?,
-          Verification_Notes = ?
-        WHERE Payment_ID = ?`,
-        [status, adminID, notes, paymentID]
-      );
-
-      res.status(200).json({ message: "Payment verification updated" });
-    } catch (error) {
-      console.error("Error verifying payment:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
-
-  getAllPayments: async (req, res) => {
-    try {
-      const [payments] = await db.query(`
-        SELECT 
-          p.*,
-          b.User_ID,
-          u.Name AS User_Name,
-          u.Email AS User_Email,
-          e.Event_Name,
-          e.Event_ID
-        FROM Payments p
-        JOIN Bookings b ON p.Booking_ID = b.Booking_ID
-        JOIN Users u ON b.User_ID = u.User_ID
-        JOIN Events e ON b.Event_ID = e.Event_ID
-        ORDER BY p.Payment_Date DESC
-      `);
-
-      res.status(200).json({ payments });
-    } catch (error) {
-      console.error("Error fetching payments:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  },
-
-  
+  }
 };

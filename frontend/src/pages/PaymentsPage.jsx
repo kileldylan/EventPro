@@ -118,7 +118,7 @@ const PaymentPage = () => {
 
   return (
     <Box maxWidth="md" mx="auto" p={3}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom color="text.primary">
         Complete Your Purchase
       </Typography>
 
